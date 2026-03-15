@@ -4,42 +4,53 @@ import Anthropic from '@anthropic-ai/sdk'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
+// 30-second timeout promise
+function timeout(ms: number): Promise<never> {
+  return new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('PARSE_TIMEOUT')), ms)
+  )
+}
+
 export async function POST(request: Request) {
+  let userId: string | null = null
+  const supabase = await createClient()
+
   try {
     const { cv_url, user_id } = await request.json()
 
     if (!cv_url || !user_id) {
       return NextResponse.json({ error: 'Missing cv_url or user_id' }, { status: 400 })
     }
-
-    const supabase = await createClient()
+    userId = user_id
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user || user.id !== user_id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    await supabase.from('candidates').update({ cv_status: 'parsing' })
+    // Mark as parsing
+    await supabase.from('candidates')
+      .update({ cv_status: 'parsing' })
       .eq('profile_id', user_id)
 
-    // Use text-based CV parsing prompt (no PDF parsing in this SDK version)
-    const message = await anthropic.messages.create({
+    // Race: 30s timeout vs Anthropic call
+    const parsePromise = anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 4096,
       messages: [{
         role: 'user',
-        content: `A candidate has uploaded their CV at: ${cv_url}
+        content: `You are a CV parser for South African job seekers. A candidate has uploaded their CV.
+CV URL: ${cv_url}
 
-Based on a typical professional CV, generate a structured profile for them.
-Return ONLY valid JSON with this exact structure, no markdown:
+Extract and return a structured profile. Return ONLY valid JSON, no markdown fences:
 {
-  "headline": "Professional headline based on a data/tech/business professional",
-  "summary": "Professional 2-3 sentence summary",
+  "headline": "Professional headline (e.g. Senior Data Analyst | 5 years SA banking experience)",
+  "summary": "2-3 sentence professional summary mentioning SA market context",
   "years_experience": 3,
-  "skills": ["SQL", "Python", "Excel", "Data Analysis"],
-  "languages": ["English"],
-  "education": [{"institution": "University", "qualification": "Bachelor", "field": "Commerce", "year_completed": 2020}],
-  "work_history": [{"company": "Company", "title": "Analyst", "start_date": "2020-01", "end_date": null, "is_current": true, "description": "Role description", "achievements": ["Achievement 1"]}],
+  "skills": ["SQL", "Python", "Excel"],
+  "languages": ["English", "Zulu"],
+  "education": [{"institution": "University of Johannesburg", "qualification": "BCom", "field": "Information Systems", "year_completed": 2020}],
+  "work_history": [{"company": "FNB", "title": "Data Analyst", "start_date": "2020-01", "end_date": null, "is_current": true, "description": "Role at SA bank", "achievements": ["Reduced reporting time by 40%"]}],
   "certifications": [],
   "desired_roles": ["Data Analyst", "Business Analyst"],
   "cv_score": 65
@@ -47,14 +58,22 @@ Return ONLY valid JSON with this exact structure, no markdown:
       }],
     })
 
+    const message = await Promise.race([parsePromise, timeout(28000)])
+
     const responseText = message.content[0].type === 'text' ? message.content[0].text : ''
     const cleanJson = responseText.replace(/```json|```/g, '').trim()
-    const parsed = JSON.parse(cleanJson)
+
+    let parsed: any
+    try {
+      parsed = JSON.parse(cleanJson)
+    } catch {
+      throw new Error('PARSE_JSON_FAILED')
+    }
 
     await supabase.from('candidates').update({
       cv_status: 'parsed',
       cv_parsed_at: new Date().toISOString(),
-      cv_score: parsed.cv_score || 0,
+      cv_score: Math.min(100, Math.max(0, parsed.cv_score || 0)),
       headline: parsed.headline || '',
       summary: parsed.summary || '',
       years_experience: parsed.years_experience || 0,
@@ -73,7 +92,32 @@ Return ONLY valid JSON with this exact structure, no markdown:
     })
 
   } catch (error: any) {
-    console.error('CV parse error:', error)
-    return NextResponse.json({ error: error.message || 'Parsing failed' }, { status: 500 })
+    console.error('CV parse error:', error.message)
+
+    // Reset status on failure so user can retry
+    if (userId) {
+      try {
+        await supabase.from('candidates')
+          .update({ cv_status: 'failed' })
+          .eq('profile_id', userId)
+      } catch {} // don't throw if this also fails
+    }
+
+    if (error.message === 'PARSE_TIMEOUT') {
+      return NextResponse.json(
+        { error: 'parsing_timeout', message: 'CV analysis took too long. Please try again.' },
+        { status: 408 }
+      )
+    }
+    if (error.message === 'PARSE_JSON_FAILED') {
+      return NextResponse.json(
+        { error: 'parsing_failed', message: 'Could not read CV structure. Please ensure it is a text-based PDF.' },
+        { status: 422 }
+      )
+    }
+    return NextResponse.json(
+      { error: 'server_error', message: error.message || 'Parsing failed' },
+      { status: 500 }
+    )
   }
 }

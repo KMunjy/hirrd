@@ -20,7 +20,7 @@
   /* Typography */
   --text-primary: #1A1240;
   --text-secondary: #4A4270;
-  --text-muted: #8880A8;
+  --text-muted: #6A62A0;
   --text-subtle: #B0A8C8;
 
   /* Semantic */
@@ -207,3 +207,28 @@
 
 .animate-fade-in { animation: fadeIn 0.4s ease forwards; }
 .animate-pulse-border { animation: pulse-border 3s ease-in-out infinite; }
+
+/* Accessibility: skip to main content */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 9999;
+  padding: 0;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  border-radius: 0 0 8px 0;
+}
+.skip-link:focus {
+  left: 0;
+  top: 0;
+  width: auto;
+  height: auto;
+  padding: 10px 20px;
+}

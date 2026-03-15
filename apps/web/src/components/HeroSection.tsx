@@ -115,7 +115,7 @@ export function HeroSection() {
         fontSize: '12px', color: 'var(--primary)', fontWeight: 600,
       }}>
         <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success)' }} />
-        AI-powered · South Africa · Zimbabwe · United Kingdom
+        AI-powered · South Africa · Early Access
       </div>
 
       <h1 style={{
@@ -166,10 +166,10 @@ export function HeroSection() {
         flexWrap: 'wrap',
       }}>
         {[
-          { value: '15k+', label: 'Candidates' },
-          { value: '500+', label: 'Employers' },
-          { value: '850+', label: 'Placements' },
-          { value: '3', label: 'Markets' },
+          { value: 'Early', label: 'Access Open' },
+          { value: 'SA', label: 'Focus' },
+          { value: 'AI', label: 'Powered' },
+          { value: 'Free', label: 'To Join' },
         ].map(s => (
           <div key={s.label} style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--primary)' }}>{s.value}</div>

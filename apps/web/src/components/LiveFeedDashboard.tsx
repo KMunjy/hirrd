@@ -1,254 +1,238 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { formatSalary, matchScoreColor, opportunityTypeLabels, marketLabels } from "@/lib/tokens"
+import { useState } from 'react'
 
-const MOCK_OPPORTUNITIES = [
-  { id: '1', title: 'Junior Data Analyst', company: 'FNB', city: 'Johannesburg', type: 'job', salary_min: 28000, salary_max: 40000, currency: 'ZAR', match_score: 82, skills: ['SQL', 'Python', 'Tableau'], market: 'za', posted: '2h ago' },
-  { id: '2', title: 'UX Researcher', company: 'Standard Bank', city: 'Cape Town', type: 'job', salary_min: 32000, salary_max: 45000, currency: 'ZAR', match_score: 71, skills: ['Figma', 'UX Design'], market: 'za', posted: '4h ago' },
-  { id: '3', title: 'Data Scientist', company: 'ABSA', city: 'Johannesburg', type: 'job', salary_min: 50000, salary_max: 70000, currency: 'ZAR', match_score: 77, skills: ['Python', 'Machine Learning'], market: 'za', posted: '6h ago' },
-  { id: '4', title: 'Product Manager', company: 'Revolut', city: 'London', type: 'job', salary_min: 55000, salary_max: 70000, currency: 'GBP', match_score: 65, skills: ['Agile', 'Leadership'], market: 'uk', posted: '1d ago' },
-  { id: '5', title: 'Data Science Learnship', company: 'Discovery', city: 'Sandton', type: 'learnership', salary_min: 8000, salary_max: 8000, currency: 'ZAR', match_score: 61, skills: ['Python', 'Statistics'], market: 'za', posted: '2d ago' },
-  { id: '6', title: 'DevOps Engineer', company: 'Capitec', city: 'Stellenbosch', type: 'job', salary_min: 55000, salary_max: 75000, currency: 'ZAR', match_score: 58, skills: ['Docker', 'Kubernetes', 'AWS'], market: 'za', posted: '3d ago' },
-]
+type FilterType = 'all' | 'job' | 'learnership' | 'course'
 
-const TICKER_ITEMS = MOCK_OPPORTUNITIES.map(o =>
-  `${o.title.toUpperCase()} · ${o.company.toUpperCase()} · ${o.match_score}% MATCH`
-).join('          ')
+interface Opportunity {
+  id: string
+  type: string
+  title: string
+  employers?: { company_name: string; company_logo_url?: string }
+  location_city?: string
+  salary_min?: number
+  salary_max?: number
+  salary_currency?: string
+  skills_required?: string[]
+  match_score?: number
+  employment_type?: string
+}
 
-type FilterType = 'all' | 'job' | 'learnership' | 'internship' | 'course'
+interface Props {
+  opportunities?: Opportunity[]
+  candidate?: any
+}
 
-export default function LiveFeedDashboard({ opportunities, candidate }: { opportunities?: any[]; candidate?: any } = {}) {
+export default function LiveFeedDashboard({ opportunities = [], candidate }: Props) {
   const [filter, setFilter] = useState<FilterType>('all')
-  const [topCard] = useState(MOCK_OPPORTUNITIES[0])
+  const [applied, setApplied] = useState<Record<string, boolean>>({})
+  const [applying, setApplying] = useState<string | null>(null)
 
   const filtered = filter === 'all'
-    ? MOCK_OPPORTUNITIES
-    : MOCK_OPPORTUNITIES.filter(o => o.type === filter)
+    ? opportunities
+    : opportunities.filter(o => o.type === filter)
+
+  async function applyToJob(oppId: string) {
+    setApplying(oppId)
+    try {
+      const res = await fetch('/api/applications/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ opportunity_id: oppId }),
+      })
+      const data = await res.json()
+      if (res.ok || data.code === 'duplicate') {
+        setApplied(prev => ({ ...prev, [oppId]: true }))
+      }
+    } catch {}
+    setApplying(null)
+  }
+
+  function matchColour(score: number) {
+    if (score >= 75) return 'var(--success)'
+    if (score >= 50) return 'var(--warning)'
+    return 'var(--error)'
+  }
+
+  function formatSalary(opp: Opportunity) {
+    if (!opp.salary_min && !opp.salary_max) return null
+    const cur = opp.salary_currency === 'ZAR' ? 'R' : opp.salary_currency || 'R'
+    const fmt = (n: number) => n >= 1000 ? `${Math.round(n / 1000)}k` : String(n)
+    if (opp.salary_min && opp.salary_max) return `${cur}${fmt(opp.salary_min)}–${cur}${fmt(opp.salary_max)}`
+    if (opp.salary_min) return `${cur}${fmt(opp.salary_min)}+`
+    return null
+  }
+
+  const cardStyle: React.CSSProperties = {
+    background: 'var(--bg-card)',
+    border: '1px solid var(--border)',
+    borderRadius: '12px',
+    padding: '16px',
+    marginBottom: '12px',
+    transition: 'box-shadow 0.15s',
+  }
+
+  const pillStyle = (active: boolean): React.CSSProperties => ({
+    padding: '5px 14px', borderRadius: '20px', fontSize: '12px',
+    fontWeight: 600, cursor: 'pointer', border: 'none',
+    background: active ? 'var(--primary)' : 'var(--bg-base)',
+    color: active ? 'white' : 'var(--text-muted)',
+    transition: 'all 0.15s',
+  })
 
   return (
-    <section style={{ padding: '0 24px 32px' }}>
-
-      {/* STAT STRIP */}
-      <div style={{
-        background: 'var(--bg-card)',
-        borderBottom: '1px solid var(--border)',
-        padding: '16px 24px',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '12px',
-        marginBottom: '1px',
-      }}>
-        {[
-          { value: '24', label: 'OPPORTUNITIES', color: 'var(--primary)' },
-          { value: '9', label: 'LIVE JOBS', color: 'var(--success)' },
-          { value: '12', label: 'COURSES', color: 'var(--secondary)' },
-          { value: '82%', label: 'TOP MATCH', color: 'var(--warning)' },
-        ].map(stat => (
-          <div key={stat.label} style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '28px', fontWeight: 800, color: stat.color, lineHeight: 1 }}>
-              {stat.value}
-            </div>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '3px', letterSpacing: '0.06em' }}>
-              {stat.label}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* TICKER */}
-      <div style={{
-        background: 'var(--gradient-primary)',
-        padding: '5px 0',
-        overflow: 'hidden',
-        marginBottom: '20px',
-      }}>
-        <div className="ticker-scroll" style={{ fontSize: '11px', fontWeight: 500, color: '#fff', whiteSpace: 'nowrap' }}>
-          {TICKER_ITEMS}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{TICKER_ITEMS}
+    <div>
+      {/* Section header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+        <h2 style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.1em', margin: 0 }}>
+          LIVE FEED — RANKED BY MATCH
+        </h2>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          {(['all', 'job', 'learnership', 'course'] as FilterType[]).map(f => (
+            <button key={f} style={pillStyle(filter === f)} onClick={() => setFilter(f)}>
+              {f === 'all' ? `All ${opportunities.length}` : f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* MAIN 3-COL GRID */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1.8fr 1fr',
-        gap: '16px',
-      }}>
-
-        {/* LEFT — MATCH INDEX */}
-        <div style={{ background: 'var(--bg-surface)', borderRadius: '16px', padding: '16px', border: '1px solid var(--border)' }}>
-          <SectionLabel>MATCH INDEX</SectionLabel>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-            {MOCK_OPPORTUNITIES.slice(0, 5).map(opp => (
-              <div key={opp.id}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-secondary)' }}>{opp.title.split(' ')[0]} {opp.title.split(' ')[1]}</span>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: matchScoreColor(opp.match_score) }}>{opp.match_score}</span>
-                </div>
-                <div className="match-bar">
-                  <div className="match-bar-fill" style={{ width: `${opp.match_score}%`, background: matchScoreColor(opp.match_score) === 'var(--success)' ? 'var(--gradient-primary)' : matchScoreColor(opp.match_score) }} />
-                </div>
-              </div>
-            ))}
+      {/* Empty state */}
+      {filtered.length === 0 && (
+        <div style={{
+          textAlign: 'center', padding: '40px 20px',
+          background: 'var(--bg-base)', borderRadius: '12px',
+          border: '1px dashed var(--border-medium)',
+        }}>
+          <div style={{ fontSize: '32px', marginBottom: '12px' }}>🔍</div>
+          <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
+            {candidate?.cv_status === 'parsed' ? 'No matches yet' : 'Upload your CV to get matched'}
           </div>
-
-          <SectionLabel>MARKETS</SectionLabel>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '16px' }}>
-            {[
-              { label: 'South Africa', value: 14, color: 'var(--primary)' },
-              { label: 'UK', value: 10, color: 'var(--secondary)' },
-            ].map(m => (
-              <div key={m.label} style={{ background: 'var(--bg-card)', borderRadius: '10px', padding: '10px', border: '1px solid var(--border)', textAlign: 'center' }}>
-                <div style={{ fontSize: '22px', fontWeight: 800, color: m.color }}>{m.value}</div>
-                <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '2px' }}>{m.label.toUpperCase()}</div>
-              </div>
-            ))}
-          </div>
-
-          <SectionLabel>SKILL GAPS</SectionLabel>
-          <div style={{ fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
-            <span style={{ color: 'var(--error)', fontWeight: 500 }}>▲ AWS — 6 roles affected</span>
-            <span style={{ color: 'var(--warning)', fontWeight: 500 }}>◆ Power BI — 4 roles</span>
-            <span style={{ color: 'var(--success)', fontWeight: 500 }}>✓ SQL — strong match</span>
-            <span style={{ color: 'var(--success)', fontWeight: 500 }}>✓ Python — strong match</span>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+            {candidate?.cv_status === 'parsed'
+              ? 'New opportunities are added daily. Check back soon.'
+              : 'Once you upload your CV, AI will match you to the best opportunities.'}
           </div>
         </div>
+      )}
 
-        {/* CENTRE — LIVE FEED */}
-        <div style={{ background: 'var(--bg-base)', borderRadius: '16px', padding: '16px', border: '1px solid var(--border)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <SectionLabel>LIVE FEED — RANKED BY MATCH</SectionLabel>
-            <div style={{ display: 'flex', gap: '4px' }}>
-              {(['all', 'job', 'learnership', 'course'] as FilterType[]).map(f => (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  style={{
-                    fontSize: '10px',
-                    padding: '3px 10px',
-                    borderRadius: '9999px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    border: '1px solid var(--border-medium)',
-                    background: filter === f ? 'var(--primary)' : 'var(--bg-card)',
-                    color: filter === f ? '#fff' : 'var(--text-muted)',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  {f === 'all' ? `All ${MOCK_OPPORTUNITIES.length}` : f.charAt(0).toUpperCase() + f.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* TOP MATCH HERO CARD */}
-          <div className="card animate-pulse-border" style={{ marginBottom: '10px', padding: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-              <div>
-                <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
-                  <span className="badge badge-job">● JOB</span>
-                  <span className="badge badge-primary">TOP MATCH</span>
-                </div>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '3px' }}>
-                  {topCard.title}
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                  {topCard.company} · {topCard.city} · {formatSalary(topCard.salary_min, topCard.salary_max, topCard.currency)} · Full-time
-                </div>
-              </div>
-              <div style={{
-                textAlign: 'center',
-                background: 'var(--success-light)',
-                borderRadius: '12px',
-                padding: '8px 14px',
-                border: '1.5px solid rgba(58,174,114,0.25)',
-                flexShrink: 0,
+      {/* Top match card (featured) */}
+      {filtered[0] && (
+        <div style={{ ...cardStyle, border: '1.5px solid rgba(124,88,232,0.25)', boxShadow: '0 2px 12px rgba(124,88,232,0.08)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span style={{
+                fontSize: '10px', fontWeight: 700, padding: '3px 8px',
+                borderRadius: '4px', background: 'rgba(124,88,232,0.1)',
+                color: 'var(--primary)', letterSpacing: '0.06em',
               }}>
-                <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--success)', lineHeight: 1 }}>{topCard.match_score}</div>
-                <div style={{ fontSize: '10px', color: 'var(--success)', fontWeight: 600 }}>MATCH %</div>
+                {(filtered[0].type || 'JOB').toUpperCase()}
+              </span>
+              {filtered[0].match_score && (
+                <span style={{
+                  fontSize: '10px', fontWeight: 700, padding: '3px 8px',
+                  borderRadius: '4px', background: 'rgba(58,174,114,0.1)',
+                  color: 'var(--success)', letterSpacing: '0.06em',
+                }}>TOP MATCH</span>
+              )}
+            </div>
+            {filtered[0].match_score && (
+              <div style={{
+                width: '52px', height: '52px', borderRadius: '12px',
+                background: matchColour(filtered[0].match_score),
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexDirection: 'column', flexShrink: 0,
+              }}>
+                <div style={{ fontSize: '20px', fontWeight: 800, color: 'white', lineHeight: 1 }}>
+                  {filtered[0].match_score}
+                </div>
+                <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.8)', fontWeight: 600 }}>MATCH %</div>
               </div>
-            </div>
-            <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
-              {topCard.skills.map(s => (
-                <span key={s} className="badge badge-primary" style={{ fontSize: '11px' }}>{s} ✓</span>
-              ))}
-              <span className="badge" style={{ background: 'var(--error-light)', color: 'var(--error)', fontSize: '11px' }}>AWS ✗</span>
-            </div>
-            <div className="match-bar">
-              <div className="match-bar-fill" style={{ width: `${topCard.match_score}%` }} />
-            </div>
+            )}
           </div>
 
-          {/* REST OF FEED */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            {filtered.slice(1, 5).map(opp => (
-              <OpportunityMiniCard key={opp.id} opp={opp} />
-            ))}
-          </div>
-        </div>
-
-        {/* RIGHT — PROFILE */}
-        <div style={{ background: 'var(--bg-surface)', borderRadius: '16px', padding: '16px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <SectionLabel>YOUR PROFILE</SectionLabel>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-            {[
-              { v: '24', l: 'TOTAL', c: 'var(--primary)' },
-              { v: '9', l: 'JOBS', c: 'var(--success)' },
-              { v: '12', l: 'COURSES', c: 'var(--secondary)' },
-              { v: '3', l: 'INTERN', c: 'var(--warning)' },
-            ].map(s => (
-              <div key={s.l} style={{ background: 'var(--bg-card)', borderRadius: '10px', padding: '10px', border: '1px solid var(--border)', textAlign: 'center' }}>
-                <div style={{ fontSize: '22px', fontWeight: 800, color: s.c }}>{s.v}</div>
-                <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '2px' }}>{s.l}</div>
-              </div>
-            ))}
+          <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px' }}>
+            {filtered[0].title}
+          </h3>
+          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '10px' }}>
+            {filtered[0].employers?.company_name || 'SA Employer'} · {filtered[0].location_city || 'South Africa'}
+            {formatSalary(filtered[0]) && ` · ${formatSalary(filtered[0])}`}
+            {filtered[0].employment_type && ` · ${filtered[0].employment_type.replace('_', '-')}`}
           </div>
 
-          <button className="btn btn-primary" style={{ width: '100%', fontSize: '14px', padding: '12px' }}>
-            Upload CV →
+          {filtered[0].skills_required?.length > 0 && (
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
+              {filtered[0].skills_required.slice(0, 5).map((sk: string) => {
+                const hasSkill = candidate?.skills?.includes(sk)
+                return (
+                  <span key={sk} style={{
+                    fontSize: '11px', fontWeight: 600, padding: '3px 9px', borderRadius: '5px',
+                    background: hasSkill ? 'rgba(58,174,114,0.1)' : 'rgba(192,80,74,0.08)',
+                    color: hasSkill ? 'var(--success)' : 'var(--error)',
+                    border: `1px solid ${hasSkill ? 'rgba(58,174,114,0.2)' : 'rgba(192,80,74,0.15)'}`,
+                  }}>
+                    {sk} {hasSkill ? '✓' : '✗'}
+                  </span>
+                )
+              })}
+            </div>
+          )}
+
+          <button
+            onClick={() => applyToJob(filtered[0].id)}
+            disabled={!!applied[filtered[0].id] || applying === filtered[0].id}
+            style={{
+              padding: '9px 22px', borderRadius: '8px', fontWeight: 600, fontSize: '13px',
+              background: applied[filtered[0].id] ? 'var(--success)' : 'var(--gradient-primary)',
+              color: 'white', border: 'none',
+              cursor: applied[filtered[0].id] ? 'default' : 'pointer',
+              opacity: applying === filtered[0].id ? 0.7 : 1,
+            }}
+          >
+            {applying === filtered[0].id ? 'Applying…' : applied[filtered[0].id] ? '✓ Applied' : 'Apply →'}
           </button>
-
-          {/* CV STRENGTH */}
-          <div style={{ background: 'var(--bg-card)', borderRadius: '10px', padding: '12px', border: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em' }}>CV STRENGTH</span>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--warning)' }}>68/100</span>
-            </div>
-            <div className="match-bar" style={{ height: '6px', marginBottom: '10px' }}>
-              <div style={{ width: '68%', height: '100%', borderRadius: '3px', background: 'linear-gradient(90deg, var(--warning), #F0C040)' }} />
-            </div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.7 }}>
-              + Add measurable achievements<br />
-              + Quantify impact with numbers<br />
-              + Add certifications section
-            </div>
-          </div>
         </div>
-      </div>
-    </section>
-  )
-}
+      )}
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '10px', margin: '0 0 10px 0' }}>
-      {children}
-    </h2>
-  )
-}
-
-function OpportunityMiniCard({ opp }: { opp: typeof MOCK_OPPORTUNITIES[0] }) {
-  return (
-    <div className="card card-hover" style={{ padding: '10px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-        <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>{opp.title}</span>
-        <span style={{ fontSize: '12px', fontWeight: 700, color: matchScoreColor(opp.match_score) }}>{opp.match_score}%</span>
-      </div>
-      <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{opp.company} · {opp.city}</div>
-      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
-        {formatSalary(opp.salary_min, opp.salary_max, opp.currency)}
-      </div>
+      {/* Remaining cards — 2-column grid */}
+      {filtered.length > 1 && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          {filtered.slice(1).map(opp => (
+            <div key={opp.id} style={cardStyle}>
+              <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                {(opp.type || 'JOB').toUpperCase()}
+              </div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', lineHeight: 1.3 }}>
+                {opp.title}
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                {opp.employers?.company_name || 'SA Employer'} · {opp.location_city || 'SA'}
+              </div>
+              {opp.match_score && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+                  <div style={{ flex: 1, height: '4px', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${opp.match_score}%`, background: matchColour(opp.match_score), borderRadius: '2px' }} />
+                  </div>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: matchColour(opp.match_score) }}>{opp.match_score}%</span>
+                </div>
+              )}
+              <button
+                onClick={() => applyToJob(opp.id)}
+                disabled={!!applied[opp.id] || applying === opp.id}
+                style={{
+                  width: '100%', padding: '7px', borderRadius: '7px',
+                  fontWeight: 600, fontSize: '12px',
+                  background: applied[opp.id] ? 'rgba(58,174,114,0.1)' : 'rgba(124,88,232,0.08)',
+                  color: applied[opp.id] ? 'var(--success)' : 'var(--primary)',
+                  border: `1px solid ${applied[opp.id] ? 'rgba(58,174,114,0.2)' : 'rgba(124,88,232,0.15)'}`,
+                  cursor: applied[opp.id] ? 'default' : 'pointer',
+                }}
+              >
+                {applying === opp.id ? '…' : applied[opp.id] ? '✓ Applied' : 'Apply →'}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   // Protected routes — redirect to login if not authenticated
-  const protectedPaths = ['/dashboard', '/profile', '/applications', '/cv']
+  const protectedPaths = ['/dashboard', '/profile', '/applications', '/cv', '/admin', '/account']
   const isProtected = protectedPaths.some(p => request.nextUrl.pathname.startsWith(p))
 
   if (isProtected && !user) {
@@ -32,6 +32,18 @@ export async function middleware(request: NextRequest) {
     url.pathname = '/auth/login'
     url.searchParams.set('redirect', request.nextUrl.pathname)
     return NextResponse.redirect(url)
+  }
+
+  // Admin-only route protection
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    if (!user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/auth/login'
+      url.searchParams.set('redirect', request.nextUrl.pathname)
+      return NextResponse.redirect(url)
+    }
+    // Check admin role via profile (can't query DB in edge — rely on custom claim or redirect to 403)
+    // For MVP: admin routes are protected by auth; role checked in page server component
   }
 
   // Redirect logged-in users away from auth pages
