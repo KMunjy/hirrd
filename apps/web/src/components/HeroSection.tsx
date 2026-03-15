@@ -146,7 +146,7 @@ export function HeroSection() {
         margin: '0 auto 32px',
         lineHeight: 1.7,
       }}>
-        Upload your CV once. Hirrd matches you with jobs, learnerships, and courses across Africa and Europe — even when you're offline.
+        Upload your CV once. Hirrd matches you with jobs, learnerships, and courses across South Africa — even when you're offline.
       </p>
 
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>

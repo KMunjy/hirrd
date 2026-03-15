@@ -81,7 +81,7 @@ export default function RegisterPage() {
             <HirrdLogo size="md" />
           </div>
           <h1 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>Get hirrd today</h1>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>South Africa · Zimbabwe · United Kingdom</p>
+          <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>South Africa · Early Access</p>
         </div>
 
         {/* Role toggle */}

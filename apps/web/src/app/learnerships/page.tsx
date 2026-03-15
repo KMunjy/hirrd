@@ -5,7 +5,7 @@ export default function LearnerShipsPage() {
     <ComingSoon
       emoji="🎓"
       title="Learnerships launching soon"
-      description="Funded learnerships in SA and Zimbabwe, matched by sector and skill level. SETA-accredited programmes coming first."
+      description="Funded learnerships in South Africa matched by sector and skill level. SETA-accredited programmes coming first."
       launchHint="Priority access for candidates who register early"
       ctaText="Register for early access"
     />
