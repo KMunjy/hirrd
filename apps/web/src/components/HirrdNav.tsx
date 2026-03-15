@@ -85,6 +85,13 @@ export default function HirrdNav({
                   color: 'var(--error)', textDecoration: 'none', background: 'rgba(192,80,74,0.06)',
                 }}>Admin</Link>
               )}
+              {profile?.role === 'employer' && (
+                <Link href="/employer/dashboard" style={{
+                  padding: '7px 14px', fontSize: '12px', fontWeight: 600,
+                  border: '1px solid rgba(124,88,232,0.3)', borderRadius: '8px',
+                  color: 'var(--primary)', textDecoration: 'none',
+                }}>My account</Link>
+              )}
               <Link href="/profile" style={{
                 padding: '7px 14px', fontSize: '13px', fontWeight: 600,
                 border: '1px solid var(--border-medium)', borderRadius: '8px',
@@ -182,6 +189,12 @@ export default function HirrdNav({
                   display: 'block', padding: '14px 24px', fontSize: '15px', fontWeight: 600,
                   color: 'var(--error)', textDecoration: 'none', borderLeft: '3px solid transparent',
                 }}>Admin</Link>
+              )}
+              {profile?.role === 'employer' && (
+                <Link href="/employer/dashboard" style={{
+                  display: 'block', padding: '14px 24px', fontSize: '15px', fontWeight: 600,
+                  color: 'var(--primary)', textDecoration: 'none', borderLeft: '3px solid transparent',
+                }}>My account</Link>
               )}
             </>
           )}

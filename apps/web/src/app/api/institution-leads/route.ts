@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { sendEmail, institutionLeadReceivedEmail } from '@/lib/email'
+import { leadSubmitRatelimit, getRateLimitKey, rateLimitResponse } from '@/lib/ratelimit'
 
 export async function POST(request: Request) {
+  // Rate limiting
+  const key = getRateLimitKey(request, 'institution-lead')
+  const { success, reset } = await leadSubmitRatelimit.limit(key)
+  if (!success) return rateLimitResponse(reset)
+
   try {
     const body = await request.json()
     const {
@@ -27,6 +34,23 @@ export async function POST(request: Request) {
     if (error) {
       console.error('institution insert error:', error)
       return NextResponse.json({ error: 'Failed to save. Please try again.' }, { status: 500 })
+    }
+
+    // Confirmation email to institution
+    sendEmail({
+      to: contact_email,
+      subject: 'Your Hirrd institution application is received',
+      html: institutionLeadReceivedEmail(legal_name, contact_email),
+    }).catch(console.error)
+
+    // Admin alert
+    const adminEmail = process.env.ADMIN_EMAIL
+    if (adminEmail) {
+      sendEmail({
+        to: adminEmail,
+        subject: `New institution lead: ${legal_name}`,
+        html: `<p>New institution application: <strong>${legal_name}</strong> (${institution_type}). Contact: ${contact_email}. <a href="https://hirrd-web.vercel.app/admin">Review in admin</a></p>`,
+      }).catch(console.error)
     }
 
     return NextResponse.json({ success: true })

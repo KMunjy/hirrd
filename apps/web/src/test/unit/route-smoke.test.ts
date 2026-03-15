@@ -9,6 +9,10 @@ const EXPECTED_ROUTES = [
   { path: '/learnerships', label: 'Learnerships' },
   { path: '/courses', label: 'Courses' },
   { path: '/employers', label: 'Employers' },
+  { path: '/employer/dashboard', label: 'Employer Dashboard' },
+  { path: '/institutions/register', label: 'Institution Register' },
+  { path: '/profile', label: 'Candidate Profile' },
+  { path: '/admin', label: 'Admin Dashboard' },
   { path: '/privacy', label: 'Privacy Policy' },
   { path: '/terms', label: 'Terms of Service' },
 ]

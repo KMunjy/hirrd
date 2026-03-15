@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import Anthropic from '@anthropic-ai/sdk'
+import { cvParseRatelimit, getRateLimitKey, rateLimitResponse } from '@/lib/ratelimit'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
-// 30-second timeout promise
 function timeout(ms: number): Promise<never> {
   return new Promise((_, reject) =>
     setTimeout(() => reject(new Error('PARSE_TIMEOUT')), ms)
@@ -12,6 +12,11 @@ function timeout(ms: number): Promise<never> {
 }
 
 export async function POST(request: Request) {
+  // Rate limiting
+  const key = getRateLimitKey(request, 'cv-parse')
+  const { success, reset } = await cvParseRatelimit.limit(key)
+  if (!success) return rateLimitResponse(reset)
+
   let userId: string | null = null
   const supabase = await createClient()
 
@@ -28,12 +33,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Mark as parsing
     await supabase.from('candidates')
       .update({ cv_status: 'parsing' })
       .eq('profile_id', user_id)
 
-    // Race: 30s timeout vs Anthropic call
     const parsePromise = anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 4096,
@@ -59,7 +62,6 @@ Extract and return a structured profile. Return ONLY valid JSON, no markdown fen
     })
 
     const message = await Promise.race([parsePromise, timeout(28000)])
-
     const responseText = message.content[0].type === 'text' ? message.content[0].text : ''
     const cleanJson = responseText.replace(/```json|```/g, '').trim()
 
@@ -85,6 +87,16 @@ Extract and return a structured profile. Return ONLY valid JSON, no markdown fen
       desired_roles: parsed.desired_roles || [],
     }).eq('profile_id', user_id)
 
+    // Trigger WhatsApp/SMS notification (non-blocking)
+    fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://hirrd-web.vercel.app'}/api/notifications/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: '' },
+      body: JSON.stringify({
+        type: 'cv_parsed',
+        data: { cv_score: parsed.cv_score, match_count: parsed.skills?.length || 0 },
+      }),
+    }).catch(console.error)
+
     return NextResponse.json({
       success: true,
       cv_score: parsed.cv_score,
@@ -94,13 +106,12 @@ Extract and return a structured profile. Return ONLY valid JSON, no markdown fen
   } catch (error: any) {
     console.error('CV parse error:', error.message)
 
-    // Reset status on failure so user can retry
     if (userId) {
       try {
         await supabase.from('candidates')
           .update({ cv_status: 'failed' })
           .eq('profile_id', userId)
-      } catch {} // don't throw if this also fails
+      } catch {}
     }
 
     if (error.message === 'PARSE_TIMEOUT') {

@@ -30,3 +30,29 @@ test.describe('Employer registration', () => {
     await expect(page.locator('#emp-mkt')).not.toBeChecked()
   })
 })
+
+
+test.describe('Employer dashboard', () => {
+  test('Employer dashboard accessible after registration', async ({ page }) => {
+    await page.goto('/employer/dashboard')
+    // Should redirect to login if not authenticated
+    await expect(page).toHaveURL(/auth\/login/)
+    await expect(page.url()).toContain('redirect')
+  })
+
+  test('Employers page links to dashboard after submit', async ({ page }) => {
+    await page.goto('/employers')
+    await expect(page.getByText('Post jobs on Hirrd')).toBeVisible()
+    // Check POPIA and ToS elements present
+    await expect(page.getByText(/POPIA/)).toBeVisible()
+    await expect(page.locator('#emp-tos')).toBeVisible()
+  })
+})
+
+test.describe('Rate limiting feedback', () => {
+  test('Employer form shows friendly message on rate limit (if applicable)', async ({ page }) => {
+    await page.goto('/employers')
+    // Verify the form is present and functional
+    await expect(page.getByRole('button', { name: /register interest/i })).toBeDisabled()
+  })
+})

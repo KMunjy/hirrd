@@ -68,6 +68,8 @@ export function TestimonialBanner() {
             <button
               key={i}
               onClick={() => setCurrent(i)}
+              aria-label={`Show testimonial ${i + 1} of ${TESTIMONIALS.length}`}
+              aria-pressed={i === current}
               style={{
                 width: '8px', height: '8px', borderRadius: '50%', border: 'none',
                 cursor: 'pointer', padding: 0,

@@ -98,3 +98,21 @@ test.describe('Mobile nav', () => {
     await expect(page.getByRole('dialog', { name: 'Navigation menu' })).not.toBeVisible()
   })
 })
+
+
+test.describe('Accessibility — aria labels', () => {
+  test('Testimonial dot buttons have aria-labels', async ({ page }) => {
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    // Scroll to testimonial section
+    const dots = page.locator('button[aria-label*="testimonial"]')
+    const count = await dots.count()
+    expect(count).toBeGreaterThanOrEqual(3)
+  })
+
+  test('Skip link is present', async ({ page }) => {
+    await page.goto('/')
+    const skipLink = page.locator('.skip-link, a[href="#main-content"]')
+    await expect(skipLink).toHaveCount(1)
+  })
+})

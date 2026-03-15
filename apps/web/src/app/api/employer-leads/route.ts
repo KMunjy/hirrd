@@ -1,18 +1,30 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import {
+  sendEmail,
+  employerLeadReceivedEmail,
+  adminNewLeadEmail,
+} from '@/lib/email'
+import { leadSubmitRatelimit, getRateLimitKey, rateLimitResponse } from '@/lib/ratelimit'
 
 export async function POST(request: Request) {
+  // Rate limiting
+  const key = getRateLimitKey(request, 'employer-lead')
+  const { success, reset } = await leadSubmitRatelimit.limit(key)
+  if (!success) return rateLimitResponse(reset)
+
   try {
     const body = await request.json()
-    const { company_name, work_email, contact_name, contact_title, phone,
-            company_size, market, industry, cipc_number, website,
-            risk_flags, marketing_consent } = body
+    const {
+      company_name, work_email, contact_name, contact_title, phone,
+      company_size, market, industry, cipc_number, website,
+      risk_flags, marketing_consent,
+    } = body
 
     if (!company_name || !work_email || !contact_name) {
       return NextResponse.json({ error: 'Required fields missing' }, { status: 400 })
     }
 
-    // Basic email validation
     const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRe.test(work_email)) {
       return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
@@ -24,7 +36,7 @@ export async function POST(request: Request) {
       company_name, work_email, contact_name, contact_title, phone,
       company_size, market, industry, cipc_number, website,
       risk_flags: risk_flags || [],
-      status: risk_flags?.length > 0 ? 'new' : 'new',
+      status: 'new',
       notes: risk_flags?.length > 0 ? `Risk flags: ${risk_flags.join(', ')}` : null,
       ip_address: request.headers.get('x-forwarded-for') || 'unknown',
     })
@@ -34,8 +46,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to save — please try again' }, { status: 500 })
     }
 
-    // TODO: Send admin notification email when high risk flags present
-    // TODO: Send confirmation email to employer
+    // Send confirmation to employer (non-blocking)
+    sendEmail({
+      to: work_email,
+      subject: 'Your Hirrd employer application is received',
+      html: employerLeadReceivedEmail(company_name, work_email),
+    }).catch(console.error)
+
+    // Alert admin if risk flags or always (non-blocking)
+    const adminEmail = process.env.ADMIN_EMAIL
+    if (adminEmail) {
+      sendEmail({
+        to: adminEmail,
+        subject: `New employer lead: ${company_name}${risk_flags?.length ? ' ⚠️ Risk flags' : ''}`,
+        html: adminNewLeadEmail(company_name, risk_flags || [], adminEmail),
+      }).catch(console.error)
+    }
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
