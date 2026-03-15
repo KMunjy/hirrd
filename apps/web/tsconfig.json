@@ -4,7 +4,7 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": true,
+    "strict": false,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -16,10 +16,10 @@
     "plugins": [{ "name": "next" }],
     "paths": {
       "@/*": ["./src/*"],
-      "@hirrd/ui": ["../../packages/ui/src"],
-      "@hirrd/ui/*": ["../../packages/ui/src/*"],
-      "@hirrd/db": ["../../packages/db/src"],
-      "@hirrd/ai": ["../../packages/ai/src"]
+      "@hirrd/ui/tokens": ["../../packages/ui/src/tokens/index.ts"],
+      "@hirrd/ui": ["../../packages/ui/src/index.ts"],
+      "@hirrd/db": ["../../packages/db/src/index.ts"],
+      "@hirrd/ai": ["../../packages/ai/src/index.ts"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

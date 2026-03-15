@@ -6,7 +6,7 @@ import LiveFeedDashboard from '@/components/LiveFeedDashboard'
 import PlacementsShowcase from '@/components/PlacementsShowcase'
 import { TestimonialBanner, FooterBar } from '@/components/HeroSection'
 import CVUploadPanel from '@/components/CVUploadPanel'
-import { formatSalary, matchScoreColor } from '@hirrd/ui/tokens'
+import { formatSalary, matchScoreColor } from '@/lib/tokens'
 
 interface Props {
   user: any

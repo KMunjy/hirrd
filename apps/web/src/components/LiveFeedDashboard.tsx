@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { formatSalary, matchScoreColor, opportunityTypeLabels, marketLabels } from '@hirrd/ui/tokens'
+import { formatSalary, matchScoreColor, opportunityTypeLabels, marketLabels } from "@/lib/tokens"
 
 const MOCK_OPPORTUNITIES = [
   { id: '1', title: 'Junior Data Analyst', company: 'FNB', city: 'Johannesburg', type: 'job', salary_min: 28000, salary_max: 40000, currency: 'ZAR', match_score: 82, skills: ['SQL', 'Python', 'Tableau'], market: 'za', posted: '2h ago' },
