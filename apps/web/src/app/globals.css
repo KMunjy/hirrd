@@ -123,6 +123,12 @@
     border: none;
     outline: none;
   }
+  /* HIRRD-006: Focus visible ring */
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
   .btn-primary {
     background: var(--gradient-primary);
     color: white;
