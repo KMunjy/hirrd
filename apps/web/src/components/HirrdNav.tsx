@@ -5,7 +5,7 @@ import Link from 'next/link'
 import HirrdLogo from './HirrdLogo'
 import ThemeSwitcher from './ThemeSwitcher'
 
-export default function HirrdNav() {
+export default function HirrdNav({ user, profile }: { user?: any; profile?: any } = {}) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (

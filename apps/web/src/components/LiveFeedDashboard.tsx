@@ -18,7 +18,7 @@ const TICKER_ITEMS = MOCK_OPPORTUNITIES.map(o =>
 
 type FilterType = 'all' | 'job' | 'learnership' | 'internship' | 'course'
 
-export default function LiveFeedDashboard() {
+export default function LiveFeedDashboard({ opportunities, candidate }: { opportunities?: any[]; candidate?: any } = {}) {
   const [filter, setFilter] = useState<FilterType>('all')
   const [topCard] = useState(MOCK_OPPORTUNITIES[0])
 

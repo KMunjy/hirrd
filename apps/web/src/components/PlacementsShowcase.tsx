@@ -38,7 +38,7 @@ const PLACEMENTS = [
   },
 ]
 
-export default function PlacementsShowcase() {
+export default function PlacementsShowcase({ placements }: { placements?: any[] } = {}) {
   return (
     <section style={{ padding: '0 24px 0' }}>
       <div style={{

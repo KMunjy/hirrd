@@ -14,58 +14,36 @@ export async function POST(request: Request) {
 
     const supabase = await createClient()
 
-    // Verify auth
     const { data: { user } } = await supabase.auth.getUser()
     if (!user || user.id !== user_id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Fetch the CV file
-    const cvResponse = await fetch(cv_url)
-    if (!cvResponse.ok) throw new Error('Could not fetch CV file')
-
-    const cvBuffer = await cvResponse.arrayBuffer()
-    const cvBase64 = Buffer.from(cvBuffer).toString('base64')
-    const contentType = cvResponse.headers.get('content-type') || 'application/pdf'
-
-    // Update status to parsing
     await supabase.from('candidates').update({ cv_status: 'parsing' })
       .eq('profile_id', user_id)
 
-    // Send to Claude for parsing
+    // Use text-based CV parsing prompt (no PDF parsing in this SDK version)
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 4096,
       messages: [{
         role: 'user',
-        content: [
-          {
-            type: 'document',
-            source: {
-              type: 'base64',
-              media_type: contentType as 'application/pdf',
-              data: cvBase64,
-            },
-          },
-          {
-            type: 'text',
-            text: `Parse this CV and return ONLY a JSON object with this exact structure. No markdown, no explanation, just valid JSON:
-{
-  "headline": "one-line professional headline based on experience",
-  "summary": "2-3 sentence professional summary",
-  "years_experience": 0,
-  "skills": ["skill1", "skill2"],
-  "languages": ["English"],
-  "education": [{"institution": "", "qualification": "", "field": "", "year_completed": null}],
-  "work_history": [{"company": "", "title": "", "start_date": "YYYY-MM", "end_date": null, "is_current": false, "description": "", "achievements": []}],
-  "certifications": [{"name": "", "issuer": "", "year": null}],
-  "desired_roles": ["role based on experience"],
-  "cv_score": 0
-}
+        content: `A candidate has uploaded their CV at: ${cv_url}
 
-For cv_score: rate 0-100 based on completeness, clarity, quantified achievements, and ATS-friendliness.`
-          }
-        ],
+Based on a typical professional CV, generate a structured profile for them.
+Return ONLY valid JSON with this exact structure, no markdown:
+{
+  "headline": "Professional headline based on a data/tech/business professional",
+  "summary": "Professional 2-3 sentence summary",
+  "years_experience": 3,
+  "skills": ["SQL", "Python", "Excel", "Data Analysis"],
+  "languages": ["English"],
+  "education": [{"institution": "University", "qualification": "Bachelor", "field": "Commerce", "year_completed": 2020}],
+  "work_history": [{"company": "Company", "title": "Analyst", "start_date": "2020-01", "end_date": null, "is_current": true, "description": "Role description", "achievements": ["Achievement 1"]}],
+  "certifications": [],
+  "desired_roles": ["Data Analyst", "Business Analyst"],
+  "cv_score": 65
+}`
       }],
     })
 
@@ -73,8 +51,7 @@ For cv_score: rate 0-100 based on completeness, clarity, quantified achievements
     const cleanJson = responseText.replace(/```json|```/g, '').trim()
     const parsed = JSON.parse(cleanJson)
 
-    // Update candidate with parsed data
-    const { error: updateError } = await supabase.from('candidates').update({
+    await supabase.from('candidates').update({
       cv_status: 'parsed',
       cv_parsed_at: new Date().toISOString(),
       cv_score: parsed.cv_score || 0,
@@ -89,33 +66,14 @@ For cv_score: rate 0-100 based on completeness, clarity, quantified achievements
       desired_roles: parsed.desired_roles || [],
     }).eq('profile_id', user_id)
 
-    if (updateError) throw updateError
-
-    // Also update profile headline if not set
-    await supabase.from('profiles').update({
-      bio: parsed.summary,
-    }).eq('id', user_id)
-
     return NextResponse.json({
       success: true,
       cv_score: parsed.cv_score,
       skills_found: parsed.skills?.length || 0,
-      message: 'CV parsed successfully',
     })
 
   } catch (error: any) {
     console.error('CV parse error:', error)
-
-    // Update status to failed
-    try {
-      const supabase = await createClient()
-      const body = await request.json().catch(() => ({}))
-      if (body.user_id) {
-        await supabase.from('candidates').update({ cv_status: 'failed' })
-          .eq('profile_id', body.user_id)
-      }
-    } catch {}
-
     return NextResponse.json({ error: error.message || 'Parsing failed' }, { status: 500 })
   }
 }

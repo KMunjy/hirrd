@@ -82,7 +82,6 @@ export function TestimonialBanner() {
   )
 }
 
-export default TestimonialBanner
 
 // ─── HERO SECTION ─────────────────────────────────────────────────────────────
 
@@ -204,3 +203,6 @@ export function FooterBar() {
     </footer>
   )
 }
+
+
+export default HeroSection

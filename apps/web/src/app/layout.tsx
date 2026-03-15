@@ -1,12 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-})
 
 export const metadata: Metadata = {
   title: 'Hirrd — Career Intelligence',
@@ -17,21 +10,7 @@ export const metadata: Metadata = {
     description: 'Get hirrd. AI-powered career matching for Africa and Europe.',
     url: 'https://hirrd.com',
     siteName: 'Hirrd',
-    images: [{ url: 'https://hirrd.com/og-image.png', width: 1200, height: 630 }],
     type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Hirrd — Career Intelligence',
-    description: 'Upload your CV once. We do the rest.',
-    images: ['https://hirrd.com/og-image.png'],
-  },
-  manifest: '/manifest.json',
-  themeColor: '#7C58E8',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'Hirrd',
   },
 }
 
@@ -41,13 +20,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
-      <body className="min-h-screen bg-bg-base font-sans antialiased">
+      <body className="min-h-screen" style={{ fontFamily: "'Inter', Arial, sans-serif" }}>
         {children}
       </body>
     </html>

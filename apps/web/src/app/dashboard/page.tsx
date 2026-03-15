@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import DashboardClient from './DashboardClient'
@@ -54,3 +56,4 @@ export default async function DashboardPage() {
     />
   )
 }
+
