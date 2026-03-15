@@ -232,9 +232,9 @@ export default function LiveFeedDashboard({ opportunities, candidate }: { opport
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '10px' }}>
+    <h2 style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '10px', margin: '0 0 10px 0' }}>
       {children}
-    </div>
+    </h2>
   )
 }
 
