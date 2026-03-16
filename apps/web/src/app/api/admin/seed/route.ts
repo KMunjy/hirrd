@@ -1,8 +1,8 @@
 /**
  * POST /api/admin/seed
- * One-time seed — inserts 250 SA opportunities server-side via Supabase Admin client
- * Auth: Bearer CRON_SECRET header
- * Remove after use.
+ * One-time seed — 250 SA opportunities
+ * Auth: x-seed-key header must match SUPABASE_SERVICE_ROLE_KEY (already in Vercel)
+ * No new env vars needed. Delete this file after use.
  */
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
@@ -23,7 +23,9 @@ const COMPANIES: [string, string][] = [
   ['KPMG SA','Professional Services'],['Bidvest','Diversified'],
 ]
 
-const CITIES = ['Johannesburg','Pretoria','Soweto','Sandton','Midrand','Centurion','Cape Town','Stellenbosch','Bellville','Durban','Pietermaritzburg','Umhlanga','Gqeberha','East London','Polokwane','Mbombela']
+const CITIES = ['Johannesburg','Pretoria','Soweto','Sandton','Midrand','Centurion',
+  'Cape Town','Stellenbosch','Bellville','Durban','Pietermaritzburg','Umhlanga',
+  'Gqeberha','East London','Polokwane','Mbombela','Witbank']
 
 const JOBS: [string, string[], string, number, number][] = [
   ['Junior Data Analyst',['SQL','Python','Excel','Tableau','Data Analysis'],'junior',22,45],
@@ -31,7 +33,7 @@ const JOBS: [string, string[], string, number, number][] = [
   ['UX Designer',['Figma','User Research','Prototyping','CSS'],'mid',32,60],
   ['Business Analyst',['SQL','Excel','JIRA','Agile'],'junior',25,50],
   ['DevOps Engineer',['AWS','Docker','Kubernetes','CI/CD','Linux'],'mid',50,90],
-  ['Cybersecurity Analyst',['SIEM','Python','Network Security','Threat Analysis'],'junior',35,65],
+  ['Cybersecurity Analyst',['SIEM','Python','Network Security'],'junior',35,65],
   ['Product Manager',['Agile','User Stories','Data Analysis'],'mid',55,95],
   ['Data Scientist',['Python','R','Machine Learning','SQL'],'mid',50,85],
   ['Financial Analyst',['Excel','SAP','Accounting','Forecasting'],'junior',25,48],
@@ -78,40 +80,48 @@ const BURSARIES: [string, string[], number, number][] = [
 
 function rng(seed: number) {
   let s = seed | 0
-  return () => { s = Math.imul(s ^ (s >>> 16), 0x45d9f3b); s ^= s >>> 15; return (s >>> 0) / 4294967296 }
+  return () => {
+    s = Math.imul(s ^ (s >>> 16), 0x45d9f3b)
+    s ^= s >>> 15
+    return (s >>> 0) / 4294967296
+  }
 }
 
 export async function POST(req: Request) {
-  if (req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Auth: the caller must know the service role key (already in their possession)
+  const provided = req.headers.get('x-seed-key') || ''
+  const expected = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+  if (!expected || provided !== expected) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return NextResponse.json({ error: 'SUPABASE_SERVICE_ROLE_KEY not set in Vercel env vars' }, { status: 500 })
-  }
+  const sb = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 
-  const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
   const r = rng(42)
   const pick = <T>(a: T[]) => a[Math.floor(r() * a.length)]
   const ri = (lo: number, hi: number) => lo + Math.floor(r() * (hi - lo + 1))
 
   const records: any[] = []
+
   for (let i = 0; i < 250; i++) {
     const roll = r()
     let type: string, title: string, skills: string[], lvl = 'entry', sMin: number, sMax: number
 
     if (roll < 0.52) {
       type = 'job'
-      const d = pick(JOBS); title = d[0]; skills = d[1]; lvl = d[2]; sMin = d[3]; sMax = d[4]
+      const d = pick(JOBS); [title, skills, lvl, sMin, sMax] = [d[0], d[1], d[2] as string, d[3] as number, d[4] as number]
     } else if (roll < 0.76) {
       type = 'learnership'
-      const d = pick(LEARNERSHIPS); title = d[0]; skills = d[1]; sMin = d[2]; sMax = d[3]
+      const d = pick(LEARNERSHIPS); [title, skills, sMin, sMax] = [d[0], d[1], d[2], d[3]]
     } else if (roll < 0.92) {
       type = 'internship'
-      const d = pick(INTERNSHIPS); title = d[0]; skills = d[1]; sMin = d[2]; sMax = d[3]
+      const d = pick(INTERNSHIPS); [title, skills, sMin, sMax] = [d[0], d[1], d[2], d[3]]
     } else {
       type = 'bursary'
-      const d = pick(BURSARIES); title = d[0]; skills = d[1]; sMin = d[2]; sMax = d[3]
+      const d = pick(BURSARIES); [title, skills, sMin, sMax] = [d[0], d[1], d[2], d[3]]
     }
 
     const [company, industry] = pick(COMPANIES)
@@ -122,7 +132,7 @@ export async function POST(req: Request) {
 
     const hex = (1000 + i).toString(16).padStart(8, '0')
     const id = `${hex}-1234-5678-9abc-${hex.padStart(12, '0')}`
-    const slug = `${company.toLowerCase().replace(/[^a-z0-9]+/g,'-')}-${title.toLowerCase().replace(/[^a-z0-9]+/g,'-')}-${1000+i}`.slice(0, 80)
+    const slug = `${company}-${title}-${1000 + i}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 80)
 
     records.push({
       id, employer_id: null, type, title, slug,
@@ -131,7 +141,8 @@ export async function POST(req: Request) {
       skills_required: skills,
       employment_type: 'full_time',
       experience_level: lvl,
-      industry, market: 'za', location_city: city, location_country: 'ZA',
+      industry, market: 'za',
+      location_city: city, location_country: 'ZA',
       salary_min: salMin, salary_max: salMax, salary_currency: 'ZAR',
       is_active: true, is_verified: r() < 0.71,
       published_at: new Date(Date.now() - daysAgo * 86400000).toISOString(),
@@ -140,13 +151,24 @@ export async function POST(req: Request) {
 
   let inserted = 0
   const errors: string[] = []
+
   for (let b = 0; b < records.length; b += 50) {
-    const { error } = await sb.from('opportunities').upsert(records.slice(b, b + 50), { onConflict: 'id', ignoreDuplicates: true })
+    const { error } = await sb
+      .from('opportunities')
+      .upsert(records.slice(b, b + 50), { onConflict: 'id', ignoreDuplicates: true })
     if (error) errors.push(error.message)
     else inserted += 50
   }
 
-  const { count } = await sb.from('opportunities').select('id', { count: 'exact', head: true })
+  const { count } = await sb
+    .from('opportunities')
+    .select('id', { count: 'exact', head: true })
+    .eq('is_active', true)
 
-  return NextResponse.json({ success: !errors.length, inserted, total: count, errors: errors.length ? errors : undefined })
+  return NextResponse.json({
+    success: errors.length === 0,
+    inserted,
+    total_in_db: count,
+    errors: errors.length ? errors : undefined,
+  })
 }
