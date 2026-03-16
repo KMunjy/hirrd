@@ -1,13 +1,16 @@
 /**
  * POST /api/admin/seed
  * One-time seed — 250 SA opportunities
- * Auth: x-seed-key header must match SUPABASE_SERVICE_ROLE_KEY (already in Vercel)
- * No new env vars needed. Delete this file after use.
+ * Simple token auth — delete this file after running once
  */
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 export const maxDuration = 60
+
+const SUPABASE_URL = 'https://nzanxokgpfurtkrvjfhw.supabase.co'
+const SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56YW54b2tncGZ1cnRrcnZqZmh3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MTg1ODQ0MywiZXhwIjoyMDU3NDM0NDQzfQ.R62aAiy7v2jJY2dl6DrZ-Q_A6ygCRtc'
+const SEED_TOKEN = 'hirrd-seed-run-once-2026'
 
 const COMPANIES: [string, string][] = [
   ['FNB','Financial Services'],['Standard Bank','Financial Services'],
@@ -88,18 +91,12 @@ function rng(seed: number) {
 }
 
 export async function POST(req: Request) {
-  // Auth: the caller must know the service role key (already in their possession)
-  const provided = req.headers.get('x-seed-key') || ''
-  const expected = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-  if (!expected || provided !== expected) {
+  const token = req.headers.get('x-seed-token') || ''
+  if (token !== SEED_TOKEN) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const sb = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
+  const sb = createClient(SUPABASE_URL, SERVICE_KEY)
   const r = rng(42)
   const pick = <T>(a: T[]) => a[Math.floor(r() * a.length)]
   const ri = (lo: number, hi: number) => lo + Math.floor(r() * (hi - lo + 1))
@@ -112,16 +109,20 @@ export async function POST(req: Request) {
 
     if (roll < 0.52) {
       type = 'job'
-      const d = pick(JOBS); [title, skills, lvl, sMin, sMax] = [d[0], d[1], d[2] as string, d[3] as number, d[4] as number]
+      const d = pick(JOBS)
+      title = d[0]; skills = d[1]; lvl = d[2] as string; sMin = d[3] as number; sMax = d[4] as number
     } else if (roll < 0.76) {
       type = 'learnership'
-      const d = pick(LEARNERSHIPS); [title, skills, sMin, sMax] = [d[0], d[1], d[2], d[3]]
+      const d = pick(LEARNERSHIPS)
+      title = d[0]; skills = d[1]; sMin = d[2]; sMax = d[3]
     } else if (roll < 0.92) {
       type = 'internship'
-      const d = pick(INTERNSHIPS); [title, skills, sMin, sMax] = [d[0], d[1], d[2], d[3]]
+      const d = pick(INTERNSHIPS)
+      title = d[0]; skills = d[1]; sMin = d[2]; sMax = d[3]
     } else {
       type = 'bursary'
-      const d = pick(BURSARIES); [title, skills, sMin, sMax] = [d[0], d[1], d[2], d[3]]
+      const d = pick(BURSARIES)
+      title = d[0]; skills = d[1]; sMin = d[2]; sMax = d[3]
     }
 
     const [company, industry] = pick(COMPANIES)
@@ -132,7 +133,8 @@ export async function POST(req: Request) {
 
     const hex = (1000 + i).toString(16).padStart(8, '0')
     const id = `${hex}-1234-5678-9abc-${hex.padStart(12, '0')}`
-    const slug = `${company}-${title}-${1000 + i}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 80)
+    const slug = `${company}-${title}-${1000 + i}`
+      .toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 80)
 
     records.push({
       id, employer_id: null, type, title, slug,
