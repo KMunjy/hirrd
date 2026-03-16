@@ -1,143 +1,148 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
+import Link from 'next/link'
 
 interface Opportunity {
-  id: string
-  type: string
-  title: string
-  sector?: string
-  location_city?: string
-  salary_min?: number
-  salary_max?: number
-  skills_required?: string[]
-  is_verified?: boolean
-  verification_status?: string
-  seta_name?: string
+  id: string; type: string; title: string; sector?: string; industry?: string;
+  location_city?: string; salary_min?: number; salary_max?: number;
+  skills_required?: string[]; is_verified?: boolean; verification_status?: string;
+  seta_name?: string; employers?: { company_name?: string }
 }
-
-interface Props {
-  opportunities: Opportunity[]
-  type?: 'job' | 'learnership' | 'internship' | 'bursary'
-}
+interface Props { opportunities: Opportunity[]; type?: string }
 
 const SECTORS = ['All sectors','Financial Services','Technology','Healthcare','Retail',
-  'Mining','Construction','Education','Government','Telecoms','Agriculture','Hospitality']
+  'Mining','Construction','Education','Government','Telecoms','Agriculture','Hospitality',
+  'Professional Services','Logistics','Energy','FMCG','Insurance / FinTech','Diversified']
 
 const PROVINCES = ['All provinces','Gauteng','Western Cape','KwaZulu-Natal','Eastern Cape',
   'Limpopo','Mpumalanga','North West','Free State','Northern Cape']
 
+const TYPE_META: Record<string,{color:string;bg:string;border:string}> = {
+  job:         {color:'#4ADE80',bg:'rgba(16,185,129,0.12)',border:'rgba(16,185,129,0.25)'},
+  learnership: {color:'#5EEAD4',bg:'rgba(45,212,191,0.12)',border:'rgba(45,212,191,0.25)'},
+  internship:  {color:'#FCD34D',bg:'rgba(245,158,11,0.12)',border:'rgba(245,158,11,0.25)'},
+  bursary:     {color:'#FB7185',bg:'rgba(244,63,94,0.12)',border:'rgba(244,63,94,0.25)'},
+}
+
 export default function OpportunitySearch({ opportunities, type }: Props) {
-  const [query, setQuery] = useState('')
-  const [sector, setSector] = useState('All sectors')
-  const [province, setProvince] = useState('All provinces')
+  const [query, setQuery]               = useState('')
+  const [sector, setSector]             = useState('All sectors')
+  const [province, setProvince]         = useState('All provinces')
   const [verifiedOnly, setVerifiedOnly] = useState(false)
-  const [salaryMin, setSalaryMin] = useState('')
+  const [salaryMin, setSalaryMin]       = useState('')
 
   const filtered = opportunities.filter(o => {
     if (type && o.type !== type) return false
     if (query) {
       const q = query.toLowerCase()
-      const matches =
-        o.title?.toLowerCase().includes(q) ||
-        o.sector?.toLowerCase().includes(q) ||
+      const hit = o.title?.toLowerCase().includes(q) ||
+        (o.sector || o.industry || '')?.toLowerCase().includes(q) ||
         o.location_city?.toLowerCase().includes(q) ||
+        o.employers?.company_name?.toLowerCase().includes(q) ||
         o.skills_required?.some(s => s.toLowerCase().includes(q))
-      if (!matches) return false
+      if (!hit) return false
     }
-    if (sector !== 'All sectors' && o.sector !== sector) return false
-    if (province !== 'All provinces' && o.location_city !== province) return false
+    if (sector !== 'All sectors' && o.sector !== sector && o.industry !== sector) return false
+    if (province !== 'All provinces' && !o.location_city?.includes(province.split(' ')[0])) return false
     if (verifiedOnly && !o.is_verified && o.verification_status !== 'verified') return false
-    if (salaryMin && o.salary_min && o.salary_min < Number(salaryMin)) return false
+    if (salaryMin && o.salary_min && o.salary_min < Number(salaryMin) * 1000) return false
     return true
   })
 
   const inp: React.CSSProperties = {
     padding: '10px 14px', borderRadius: '10px',
-    border: '1px solid rgba(124,88,232,0.2)', background: 'var(--bg-base)',
-    color: 'var(--text-primary)', fontSize: '14px', outline: 'none',
-    fontFamily: 'inherit',
+    border: '1px solid rgba(255,255,255,0.08)',
+    background: 'rgba(255,255,255,0.04)',
+    backdropFilter: 'blur(10px)',
+    color: '#F0ECFF', fontSize: '14px', outline: 'none',
+    fontFamily: 'inherit', transition: 'all 0.2s',
   }
 
-  const cardStyle: React.CSSProperties = {
-    background: 'var(--bg-card)', border: '1px solid var(--border)',
-    borderRadius: '12px', padding: '18px', transition: 'box-shadow 0.15s',
-  }
-
-  function verificationBadge(o: Opportunity) {
-    if (o.seta_name && (o.is_verified || o.verification_status === 'verified')) {
-      return <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 7px', borderRadius: '4px', background: 'rgba(58,174,114,0.12)', color: 'var(--success)', border: '1px solid rgba(58,174,114,0.25)' }}>✓ SETA: {o.seta_name}</span>
-    }
-    if (o.is_verified || o.verification_status === 'verified') {
-      return <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 7px', borderRadius: '4px', background: 'rgba(58,174,114,0.12)', color: 'var(--success)', border: '1px solid rgba(58,174,114,0.25)' }}>✓ Verified</span>
-    }
-    return null
+  function formatSal(o: Opportunity) {
+    if (!o.salary_min && !o.salary_max) return null
+    const f = (n: number) => n >= 1000 ? `R${Math.round(n/1000)}k` : `R${n}`
+    if (o.salary_min && o.salary_max) return `${f(o.salary_min)}–${f(o.salary_max)}`
+    return o.salary_min ? `${f(o.salary_min)}+` : null
   }
 
   return (
     <div>
-      {/* Search + filters */}
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', marginBottom: '24px' }}>
+      {/* Search bar */}
+      <div className="card" style={{ marginBottom: '16px', padding: '16px 20px' }}>
         <input
           type="search" value={query} onChange={e => setQuery(e.target.value)}
-          placeholder="Search by title, skills, location…"
-          style={{ ...inp, width: '100%', marginBottom: '12px', boxSizing: 'border-box' }}
+          placeholder="Search by title, skills, company, location…"
+          style={{ ...inp, width: '100%', marginBottom: '12px', boxSizing: 'border-box', fontSize: '15px' }}
           aria-label="Search opportunities"
+          onFocus={e => { (e.target as HTMLInputElement).style.borderColor = 'rgba(123,92,240,0.5)'; (e.target as HTMLInputElement).style.boxShadow = '0 0 0 3px rgba(123,92,240,0.12)' }}
+          onBlur={e => { (e.target as HTMLInputElement).style.borderColor = 'rgba(255,255,255,0.08)'; (e.target as HTMLInputElement).style.boxShadow = 'none' }}
         />
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <select value={sector} onChange={e => setSector(e.target.value)} style={{ ...inp, flex: '1', minWidth: '160px' }}>
-            {SECTORS.map(s => <option key={s}>{s}</option>)}
+          <select value={sector} onChange={e => setSector(e.target.value)} style={{ ...inp, flex: '1', minWidth: '150px' }}>
+            {SECTORS.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
-          <select value={province} onChange={e => setProvince(e.target.value)} style={{ ...inp, flex: '1', minWidth: '160px' }}>
-            {PROVINCES.map(p => <option key={p}>{p}</option>)}
+          <select value={province} onChange={e => setProvince(e.target.value)} style={{ ...inp, flex: '1', minWidth: '150px' }}>
+            {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
           <input
             type="number" value={salaryMin} onChange={e => setSalaryMin(e.target.value)}
-            placeholder="Min salary (R)" style={{ ...inp, width: '140px' }}
-            aria-label="Minimum salary in Rand"
+            placeholder="Min R (000s)" style={{ ...inp, width: '120px' }}
+            aria-label="Minimum salary in thousands"
           />
-          <label style={{ display: 'flex', gap: '8px', alignItems: 'center', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', whiteSpace: 'nowrap' as const }}>
-            <input type="checkbox" checked={verifiedOnly} onChange={e => setVerifiedOnly(e.target.checked)} style={{ accentColor: 'var(--primary)' }} />
-            Verified only ✓
+          <label style={{ display: 'flex', gap: '7px', alignItems: 'center', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: 'rgba(240,236,255,0.6)', whiteSpace: 'nowrap' }}>
+            <input type="checkbox" checked={verifiedOnly} onChange={e => setVerifiedOnly(e.target.checked)}
+              style={{ accentColor: '#7B5CF0', width: '14px', height: '14px' }} />
+            ✓ Verified only
           </label>
         </div>
-        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '10px' }}>
+        <div style={{ fontSize: '11px', color: 'var(--text-subtle,#4A4278)', marginTop: '10px', fontWeight: 600, letterSpacing: '0.04em' }}>
           {filtered.length} {filtered.length === 1 ? 'opportunity' : 'opportunities'} found
           {verifiedOnly && ' · verified employers only'}
+          {query && ` · "${query}"`}
         </div>
       </div>
 
       {/* Results */}
       {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
-          <div style={{ fontSize: '32px', marginBottom: '12px' }}>🔍</div>
-          <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>No results for "{query}"</div>
-          <div style={{ fontSize: '13px' }}>Try a broader search or remove some filters.</div>
+        <div style={{ textAlign: 'center', padding: '60px 20px', background: 'rgba(255,255,255,0.02)', borderRadius: '18px', border: '1px dashed rgba(255,255,255,0.08)' }}>
+          <div style={{ fontSize: '36px', marginBottom: '12px' }}>🔍</div>
+          <div style={{ fontWeight: 700, color: '#F0ECFF', marginBottom: '6px' }}>No results</div>
+          <div style={{ fontSize: '13px', color: 'rgba(240,236,255,0.4)' }}>Try a broader search or remove filters</div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {filtered.map(o => (
-            <div key={o.id} style={cardStyle}>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'rgba(124,88,232,0.1)', color: 'var(--primary)' }}>
-                  {(o.type || 'JOB').toUpperCase()}
-                </span>
-                {verificationBadge(o)}
-              </div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>{o.title}</h3>
-              <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-                {o.sector} · {o.location_city || 'South Africa'}
-                {o.salary_min && ` · R${Math.round(o.salary_min / 1000)}k${o.salary_max ? `–R${Math.round(o.salary_max / 1000)}k` : '+'}`}
-              </div>
-              {(o.skills_required || []).length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  {(o.skills_required || []).slice(0, 5).map(s => (
-                    <span key={s} style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '5px', background: 'var(--bg-base)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>{s}</span>
-                  ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {filtered.map(o => {
+            const meta = TYPE_META[o.type] || TYPE_META.job
+            const sal = formatSal(o)
+            const verified = o.is_verified || o.verification_status === 'verified'
+            return (
+              <div key={o.id} className="card card-hover">
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '9px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', background: meta.bg, color: meta.color, border: `1px solid ${meta.border}`, letterSpacing: '0.08em' }}>
+                    {o.type.toUpperCase()}
+                  </span>
+                  {verified && (
+                    <span style={{ fontSize: '9px', fontWeight: 800, padding: '2px 7px', borderRadius: '4px', background: 'rgba(16,185,129,0.12)', color: '#34D399', border: '1px solid rgba(16,185,129,0.2)' }}>
+                      {o.seta_name ? `✓ ${o.seta_name}` : '✓ Verified'}
+                    </span>
+                  )}
                 </div>
-              )}
-            </div>
-          ))}
+                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#F0ECFF', marginBottom: '3px', lineHeight: 1.3 }}>{o.title}</h3>
+                <div style={{ fontSize: '12px', color: 'rgba(240,236,255,0.45)', marginBottom: '8px' }}>
+                  {o.employers?.company_name || (o.sector || o.industry || '')} · {o.location_city || 'South Africa'}
+                  {sal && ` · ${sal}`}
+                </div>
+                {(o.skills_required || []).length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                    {(o.skills_required || []).slice(0, 5).map(s => (
+                      <span key={s} style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '4px', background: 'rgba(255,255,255,0.05)', color: 'rgba(240,236,255,0.5)', border: '1px solid rgba(255,255,255,0.07)' }}>{s}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
