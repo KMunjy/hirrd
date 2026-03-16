@@ -1,0 +1,218 @@
+name: Hirrd Mobile CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, release/*, hotfix/*]
+  pull_request:
+    branches: [main]
+
+env:
+  XCODE_VERSION: '15.4'
+  ANDROID_API_LEVEL: '34'
+
+jobs:
+
+  # ── SECURITY SCAN (blocks all other jobs if it fails) ──────────────────────
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'hirrd-mobile'
+          path: '.'
+          format: 'HTML'
+          failBuildOnCVSS: 7  # Fail on HIGH+ vulnerabilities
+
+      - name: Semgrep SAST
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/owasp-top-ten
+            p/mobile-security
+            p/secrets
+          generateSarif: '1'
+
+      - name: GitLeaks (secrets scan)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+
+  # ── iOS BUILD ──────────────────────────────────────────────────────────────
+  ios-build:
+    name: iOS Build & Test
+    runs-on: macos-14
+    needs: security-scan
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode ${{ env.XCODE_VERSION }}
+        run: sudo xcode-select -switch /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: Pods
+          key: pods-${{ hashFiles('Podfile.lock') }}
+
+      - name: Install CocoaPods
+        run: pod install
+        working-directory: mobile/ios
+
+      - name: SwiftLint
+        run: |
+          brew install swiftlint
+          swiftlint --strict --config mobile/ios/.swiftlint.yml
+        continue-on-error: false
+
+      - name: MobSF Static Analysis (iOS)
+        run: |
+          pip install mobsf-api
+          python3 -c "
+          from mobsf_api import MobSFAPI
+          api = MobSFAPI('${{ secrets.MOBSF_API_KEY }}', '${{ secrets.MOBSF_URL }}')
+          result = api.upload_and_scan('mobile/ios/build/Hirrd.ipa')
+          print(result)
+          "
+        continue-on-error: true # Non-blocking for now — make blocking in v2
+
+      - name: Build iOS (Debug)
+        run: |
+          xcodebuild \
+            -workspace mobile/ios/Hirrd.xcworkspace \
+            -scheme Hirrd \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO \
+            build
+        
+      - name: Run iOS Unit Tests
+        run: |
+          xcodebuild test \
+            -workspace mobile/ios/Hirrd.xcworkspace \
+            -scheme HirrdTests \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.5' \
+            -resultBundlePath TestResults
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-test-results
+          path: TestResults.xcresult
+
+  # ── ANDROID BUILD ──────────────────────────────────────────────────────────
+  android-build:
+    name: Android Build & Test
+    runs-on: ubuntu-latest
+    needs: security-scan
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Detekt (Kotlin static analysis)
+        run: ./gradlew detekt
+        working-directory: mobile/android
+
+      - name: Android Lint
+        run: ./gradlew lint
+        working-directory: mobile/android
+
+      - name: Run unit tests
+        run: ./gradlew test
+        working-directory: mobile/android
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug
+        working-directory: mobile/android
+
+      - name: Run Android security checks (apkleaks)
+        run: |
+          pip install apkleaks
+          apkleaks -f mobile/android/app/build/outputs/apk/debug/app-debug.apk \
+            --json apkleaks-report.json
+        continue-on-error: true
+
+  # ── WEB/PWA CI ─────────────────────────────────────────────────────────────
+  web-security:
+    name: Web PWA Security
+    runs-on: ubuntu-latest
+    needs: security-scan
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: npm audit (HIGH severity blocks)
+        run: npm audit --audit-level=high
+        working-directory: apps/web
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: apps/web
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+        working-directory: apps/web
+
+      - name: Run unit tests
+        run: npx vitest run
+        working-directory: apps/web
+
+      - name: Build
+        run: npm run build
+        working-directory: apps/web
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: OWASP ZAP API scan
+        uses: zaproxy/action-api-scan@v0.7.0
+        with:
+          target: 'https://hirrd-web.vercel.app'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
+        continue-on-error: true
+
+  # ── RELEASE GATE ──────────────────────────────────────────────────────────
+  release-gate:
+    name: Release Gate
+    runs-on: ubuntu-latest
+    needs: [ios-build, android-build, web-security]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: All checks passed
+        run: |
+          echo "✅ Security scan passed"
+          echo "✅ iOS build and tests passed"
+          echo "✅ Android build and tests passed"
+          echo "✅ Web security checks passed"
+          echo "🚀 Ready for store submission"

@@ -12,6 +12,9 @@ const THEMES = [
   { label: 'Slate',       primary: '#37474F', secondary: '#78909C' },
 ]
 
+// SECURITY NOTE: localStorage used intentionally for theme preferences only.
+// Sensitive data (tokens, user info) is stored in Keychain/Keystore on native,
+// or httpOnly cookies via Supabase Auth on web. Never store auth data in localStorage.
 const STORAGE_KEY = 'hirrd-theme'
 
 function applyTheme(primary: string, secondary: string) {
