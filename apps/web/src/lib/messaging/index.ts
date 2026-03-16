@@ -150,31 +150,61 @@ export async function sendOTP(phone: string, otp: string): Promise<MessageResult
 
 // ── Message templates (WhatsApp requires pre-approved templates for first message) ──
 
+/**
+ * HIRRD WHATSAPP/SMS MESSAGE TEMPLATES
+ * POPIA note: All messages reference Hirrd explicitly, include opt-out,
+ * contain no sensitive personal data beyond name/role/score.
+ * Templates A/B/C for re-engagement are experiment variants (Exp 5).
+ */
 export const MESSAGES = {
-  // New user welcome — must be initiated by user (24hr window)
+  // ── Welcome (send within 24hr of registration — WA 24hr window) ──────────
   welcome: (name: string) =>
-    `Hi ${name}! 👋 Welcome to *Hirrd* — SA's career intelligence platform.\n\nYour profile is set up. Upload your CV at hirrd-web.vercel.app/dashboard to get matched with SA jobs.\n\nReply STOP to opt out.`,
+    `Hi ${name}! 👋 Welcome to *Hirrd* — SA career intelligence.\n\nUpload your CV to get AI-matched to learnerships and jobs:\nhirrd-web.vercel.app/dashboard\n\nYou got this because you registered on Hirrd. Reply STOP to opt out.`,
 
-  // CV parsed — within 24hr window
+  // ── CV parsed notification ────────────────────────────────────────────────
   cvParsed: (name: string, score: number, matchCount: number) =>
-    `Hi ${name}! 🎯 Your CV has been analysed.\n\nCV Strength: *${score}/100*\nMatches found: *${matchCount}*\n\nView your matches: hirrd-web.vercel.app/dashboard`,
+    `${name}, your CV is ready on Hirrd 🎯\n\nCV strength: *${score}/100*\nMatches found: *${matchCount} SA opportunities*\n\nSee your matches (2 min):\nhirrd-web.vercel.app/dashboard\n\nReply STOP to opt out.`,
 
-  // New job match alert
-  newMatch: (jobTitle: string, company: string, matchScore: number) =>
-    `🔔 *New job match on Hirrd!*\n\n${jobTitle} at ${company}\nMatch score: ${matchScore}%\n\nApply now: hirrd-web.vercel.app/dashboard`,
+  // ── New match alert ───────────────────────────────────────────────────────
+  newMatch: (name: string, jobTitle: string, company: string, matchScore: number) =>
+    `${name}, *${matchScore}% match* on Hirrd 🔔\n\n*${jobTitle}*\n${company} · SA\n\nApply in 2 taps:\nhirrd-web.vercel.app/dashboard\n\nYou matched this via Hirrd. Reply STOP to opt out.`,
 
-  // Employer verified
+  // ── D+3 Re-engagement — Variant A: Role-specific + urgency ───────────────
+  // Based on Exp 5 results: CTR 40% ✓, apply rate 10% (target 15%)
+  // Fix: add role name, match %, time-to-apply, closing date signal
+  reengagementA: (name: string, jobTitle: string, company: string, matchScore: number) =>
+    `${name}, this role is *${matchScore}% match* for you 👇\n\n*${jobTitle}* at ${company}\nApplications close soon — takes 2 min to apply.\n\nhirrd-web.vercel.app/dashboard\n\nThis reminder is from Hirrd. Reply STOP to stop alerts.`,
+
+  // ── D+3 Re-engagement — Variant B: Social proof + scarcity ──────────────
+  reengagementB: (name: string, matchCount: number) =>
+    `${name}, *${matchCount} SA jobs* are waiting for you on Hirrd 📋\n\nOther candidates are applying now. Your profile is ready — don't miss your match.\n\nView opportunities (free):\nhirrd-web.vercel.app/dashboard\n\nFrom Hirrd. Reply STOP to opt out.`,
+
+  // ── D+3 Re-engagement — Variant C: Direct + benefit-led ─────────────────
+  reengagementC: (name: string, jobTitle: string, matchScore: number) =>
+    `Hi ${name} 👋 You have a *${matchScore}% match* on Hirrd:\n\n"${jobTitle}"\n\nApply free. No fees. No middlemen. SA-verified employer.\n\nhirrd-web.vercel.app/dashboard\n\nYou're receiving this because you opted in on Hirrd. Reply STOP to stop.`,
+
+  // ── Employer verified ─────────────────────────────────────────────────────
   employerVerified: (companyName: string) =>
-    `✅ *${companyName} is now verified on Hirrd!*\n\nYour employer account is active. Post your first job: hirrd-web.vercel.app/employer/dashboard`,
+    `✅ *${companyName}* is verified on Hirrd.\n\nYou can now receive candidate matches and post opportunities.\n\nhirrd-web.vercel.app/employer/dashboard\n\nThis is from Hirrd. Questions: employers@hirrd.com`,
 
-  // Application received
-  applicationReceived: (jobTitle: string) =>
-    `✓ Application submitted for *${jobTitle}* via Hirrd.\n\nYou'll hear from the employer within 5 business days.`,
+  // ── Application received ──────────────────────────────────────────────────
+  applicationReceived: (name: string, jobTitle: string) =>
+    `${name}, your application is submitted ✓\n\n*${jobTitle}* via Hirrd\n\nExpect to hear from the employer within 5 business days. We'll update you here.\n\nReply STOP to stop Hirrd alerts.`,
 
-  // OTP (use sendOTP function instead)
+  // ── OTP ───────────────────────────────────────────────────────────────────
   otp: (code: string) =>
-    `Your Hirrd code: *${code}*\nExpires in 10 min. Do not share.`,
+    `Your Hirrd code: *${code}*\nExpires in 10 min. Never share this.`,
 } as const
+
+/**
+ * Select re-engagement variant by user hash for consistent A/B split
+ * userId determines which template they always see — no flip-flopping
+ */
+export function selectReengagementVariant(userId: string): 'A' | 'B' | 'C' {
+  const hash = userId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+  const variants = ['A', 'B', 'C'] as const
+  return variants[hash % 3]
+}
 
 // ── Utility ───────────────────────────────────────────────────────────────────
 

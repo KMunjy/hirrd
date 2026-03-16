@@ -43,13 +43,13 @@ export async function POST(request: Request) {
         message = MESSAGES.cvParsed(profile.full_name || 'there', payload.cv_score, payload.match_count)
         break
       case 'new_match':
-        message = MESSAGES.newMatch(payload.job_title, payload.company, payload.match_score)
+        message = MESSAGES.newMatch(profile.full_name || 'there', payload.job_title, payload.company, payload.match_score)
         break
       case 'employer_verified':
         message = MESSAGES.employerVerified(payload.company_name)
         break
       case 'application_received':
-        message = MESSAGES.applicationReceived(payload.job_title)
+        message = MESSAGES.applicationReceived(profile.full_name || 'there', payload.job_title)
         break
       default:
         return NextResponse.json({ error: 'Unknown notification type' }, { status: 400 })

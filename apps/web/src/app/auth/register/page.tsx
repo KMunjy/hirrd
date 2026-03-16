@@ -201,7 +201,8 @@ function LoginContent() {
           )}
 
           {/* Passport photo consent — POPIA s.26 */}
-          {role === 'candidate' && (
+          {/* PHOTO: Disabled pending POPIA s.26 legal review — DO NOT ENABLE without attorney sign-off */}
+          {process.env.NEXT_PUBLIC_PHOTO_ENABLED === 'true' && role === 'candidate' && (
             <div style={{ background: 'rgba(58,174,114,0.04)', border: '1px solid rgba(58,174,114,0.15)', borderRadius: '10px', padding: '14px', marginBottom: '14px' }}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', marginBottom: '8px' }}>PROFILE PHOTO (OPTIONAL)</p>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
@@ -209,8 +210,9 @@ function LoginContent() {
                   style={{ marginTop: '3px', accentColor: 'var(--primary)', flexShrink: 0 }} />
                 <label htmlFor="photo-consent" style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5, cursor: 'pointer' }}>
                   I consent to uploading a passport-size photo to my profile. I understand this is{' '}
-                  <strong>special personal information under POPIA s.26</strong> and can be removed at any time.
-                  Employers may use it to identify me during the hiring process.
+                  <strong>special personal information under POPIA (Act 4 of 2013)</strong> and can be removed at any time.
+                  My photo will only be shared with verified SA employers reviewing my application.
+                  {/* ⚠️ LEGAL REVIEW REQUIRED before enabling — POPIA s.26 consent language must be approved by SA attorney */}
                 </label>
               </div>
               {photoConsent && (
@@ -218,6 +220,19 @@ function LoginContent() {
                   ✓ You&apos;ll be able to upload your photo from your profile page after registration.
                 </p>
               )}
+            </div>
+          )}
+          {/* SAFE ALTERNATIVE: LinkedIn URL — no biometric data, no s.26 risk */}
+          {role === 'candidate' && (
+            <div style={{ marginBottom: '14px' }}>
+              <label htmlFor="linkedin-url" style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '6px', letterSpacing: '0.06em' }}>
+                LINKEDIN PROFILE URL <span style={{ fontWeight: 400 }}>— optional, helps employers verify you</span>
+              </label>
+              <input
+                id="linkedin-url" type="url" autoComplete="off"
+                placeholder="https://linkedin.com/in/yourname"
+                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(124,88,232,0.2)', background: 'var(--bg-base)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+              />
             </div>
           )}
 
