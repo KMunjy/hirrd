@@ -4,7 +4,7 @@
  * Simple token auth — delete this file after running once
  */
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+// Using raw fetch — avoids supabase-js client auth issues
 
 export const maxDuration = 60
 
@@ -96,7 +96,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const sb = createClient(SUPABASE_URL, SERVICE_KEY)
+  const headers = {
+    'Content-Type': 'application/json',
+    'apikey': SERVICE_KEY,
+    'Authorization': `Bearer ${SERVICE_KEY}`,
+    'Prefer': 'return=minimal,resolution=ignore-duplicates',
+  }
   const r = rng(42)
   const pick = <T>(a: T[]) => a[Math.floor(r() * a.length)]
   const ri = (lo: number, hi: number) => lo + Math.floor(r() * (hi - lo + 1))
@@ -155,17 +160,24 @@ export async function POST(req: Request) {
   const errors: string[] = []
 
   for (let b = 0; b < records.length; b += 50) {
-    const { error } = await sb
-      .from('opportunities')
-      .upsert(records.slice(b, b + 50), { onConflict: 'id', ignoreDuplicates: true })
-    if (error) errors.push(error.message)
-    else inserted += 50
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/opportunities`, {
+      method: 'POST',
+      headers: { ...headers, 'Prefer': 'return=minimal,resolution=ignore-duplicates' },
+      body: JSON.stringify(records.slice(b, b + 50)),
+    })
+    if (!res.ok) {
+      const txt = await res.text()
+      errors.push(`Batch ${b/50+1} (${res.status}): ${txt.slice(0,200)}`)
+    } else {
+      inserted += 50
+    }
   }
 
-  const { count } = await sb
-    .from('opportunities')
-    .select('id', { count: 'exact', head: true })
-    .eq('is_active', true)
+  const countRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/opportunities?select=id&is_active=eq.true`,
+    { method: 'HEAD', headers: { ...headers, 'Prefer': 'count=exact' } }
+  )
+  const count = parseInt(countRes.headers.get('content-range')?.split('/')[1] || '0')
 
   return NextResponse.json({
     success: errors.length === 0,
