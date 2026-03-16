@@ -127,20 +127,20 @@ export default function OpportunitySearch({ opportunities, type }: Props) {
                       {o.seta_name ? `✓ ${o.seta_name}` : '✓ Verified'}
                     </span>
                   )}
-                </div>
+                </a>
                 <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#F0ECFF', marginBottom: '3px', lineHeight: 1.3 }}>{o.title}</h3>
                 <div style={{ fontSize: '12px', color: 'rgba(240,236,255,0.45)', marginBottom: '8px' }}>
                   {o.employers?.company_name || (o.sector || o.industry || '')} · {o.location_city || 'South Africa'}
                   {sal && ` · ${sal}`}
-                </div>
+                </a>
                 {(o.skills_required || []).length > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
                     {(o.skills_required || []).slice(0, 5).map(s => (
                       <span key={s} style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '4px', background: 'rgba(255,255,255,0.05)', color: 'rgba(240,236,255,0.5)', border: '1px solid rgba(255,255,255,0.07)' }}>{s}</span>
                     ))}
-                  </div>
+                  </a>
                 )}
-              </div>
+              </a>
             )
           })}
         </div>
