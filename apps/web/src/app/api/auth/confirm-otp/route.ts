@@ -4,6 +4,7 @@
  */
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { authRatelimit, getRateLimitKey, rateLimitResponse } from '@/lib/ratelimit'
 import { normalisePhone, sendNotification, MESSAGES } from '@/lib/messaging'
 import * as crypto from 'crypto'
 
