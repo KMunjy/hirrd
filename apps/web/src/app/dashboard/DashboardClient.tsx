@@ -32,7 +32,7 @@ export default function DashboardClient({ user, profile, candidate, opportunitie
   const hasCV = candidate?.cv_url || candidate?.cv_status === 'parsed'
 
   return (
-    <main style={{ minHeight: '100vh', background: 'var(--bg-base)' }}>
+    <main style={{ minHeight: '100vh', background: 'var(--glass-1)' }}>
       <HirrdNav user={user} profile={profile} />
 
       {/* CV Upload prompt if no CV yet */}

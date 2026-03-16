@@ -54,7 +54,7 @@ export default function InstitutionRegisterPage() {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '10px 14px', borderRadius: '10px',
-    border: '1px solid rgba(124,88,232,0.2)', background: 'var(--bg-base)',
+    border: '1px solid rgba(124,88,232,0.2)', background: 'var(--glass-1)',
     color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box',
   }
   const labelStyle: React.CSSProperties = {
@@ -87,7 +87,7 @@ export default function InstitutionRegisterPage() {
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <HirrdLogo size="md" />
         </div>
-        <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '40px', border: '1px solid var(--border)', boxShadow: '0 8px 40px rgba(124,88,232,0.08)' }}>
+        <div style={{ background: 'var(--glass-2)', borderRadius: '20px', padding: '40px', border: '1px solid var(--border)', boxShadow: '0 8px 40px rgba(124,88,232,0.08)' }}>
           <h1 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '6px' }}>
             Register your institution
           </h1>

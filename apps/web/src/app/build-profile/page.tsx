@@ -115,7 +115,7 @@ export default function BuildProfilePage() {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '10px 14px', borderRadius: '10px',
-    border: '1px solid rgba(124,88,232,0.2)', background: 'var(--bg-base)',
+    border: '1px solid rgba(124,88,232,0.2)', background: 'var(--glass-1)',
     color: 'var(--text-primary)', fontSize: '14px', outline: 'none', boxSizing: 'border-box',
     fontFamily: 'inherit',
   }
@@ -130,7 +130,7 @@ export default function BuildProfilePage() {
 
   if (step === 'done') return (
     <div style={{ minHeight: '100vh', background: 'var(--gradient-hero)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '40px', maxWidth: '440px', textAlign: 'center', border: '1px solid var(--border)' }}>
+      <div style={{ background: 'var(--glass-2)', borderRadius: '20px', padding: '40px', maxWidth: '440px', textAlign: 'center', border: '1px solid var(--border)' }}>
         <div style={{ fontSize: '56px', marginBottom: '16px' }}>🎉</div>
         <h1 style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '8px' }}>Your profile is live!</h1>
         <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '24px' }}>
@@ -167,7 +167,7 @@ export default function BuildProfilePage() {
         </div>
 
         {/* Card */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: '20px', padding: '32px', border: '1px solid var(--border)', boxShadow: '0 4px 24px rgba(124,88,232,0.08)' }}>
+        <div style={{ background: 'var(--glass-2)', borderRadius: '20px', padding: '32px', border: '1px solid var(--border)', boxShadow: '0 4px 24px rgba(124,88,232,0.08)' }}>
 
           {/* Step 1: Education */}
           {step === 'education' && (
@@ -309,7 +309,7 @@ export default function BuildProfilePage() {
             {step !== 'education' && (
               <button
                 onClick={() => setStep(steps[steps.indexOf(step) - 1])}
-                style={{ padding: '11px 20px', borderRadius: '10px', border: '1px solid var(--border-medium)', background: 'var(--bg-base)', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}
+                style={{ padding: '11px 20px', borderRadius: '10px', border: '1px solid var(--border-medium)', background: 'var(--glass-1)', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}
               >
                 ← Back
               </button>

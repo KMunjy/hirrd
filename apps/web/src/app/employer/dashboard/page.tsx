@@ -92,7 +92,7 @@ export default async function EmployerDashboardPage() {
         {/* Application details */}
         {lead && (
           <div style={{
-            background: 'var(--bg-card)', border: '1px solid var(--border)',
+            background: 'var(--glass-2)', border: '1px solid var(--border)',
             borderRadius: '12px', padding: '24px', marginBottom: '24px',
           }}>
             <div style={sectionLabel}>APPLICATION DETAILS</div>
@@ -116,7 +116,7 @@ export default async function EmployerDashboardPage() {
 
         {/* Next steps */}
         <div style={{
-          background: 'var(--bg-card)', border: '1px solid var(--border)',
+          background: 'var(--glass-2)', border: '1px solid var(--border)',
           borderRadius: '12px', padding: '24px', marginBottom: '24px',
         }}>
           <div style={sectionLabel}>NEXT STEPS</div>

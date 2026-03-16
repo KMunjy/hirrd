@@ -91,7 +91,7 @@ export default function PostJobClient({ lead, userId, userEmail, activeListings,
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '10px 14px', borderRadius: '10px',
-    border: '1px solid rgba(124,88,232,0.2)', background: 'var(--bg-base)',
+    border: '1px solid rgba(124,88,232,0.2)', background: 'var(--glass-1)',
     color: 'var(--text-primary)', fontSize: '14px', outline: 'none',
     boxSizing: 'border-box', fontFamily: 'inherit',
   }
@@ -100,7 +100,7 @@ export default function PostJobClient({ lead, userId, userEmail, activeListings,
     display: 'block', marginBottom: '6px', letterSpacing: '0.07em',
   }
   const card: React.CSSProperties = {
-    background: 'var(--bg-card)', border: '1px solid var(--border)',
+    background: 'var(--glass-2)', border: '1px solid var(--border)',
     borderRadius: '14px', padding: '24px', marginBottom: '20px',
   }
 
@@ -151,7 +151,7 @@ export default function PostJobClient({ lead, userId, userEmail, activeListings,
           View dashboard →
         </Link>
         <button onClick={() => { setSubmitted(false); setForm(f => ({ ...f, title: '', description: '', requirements: '' })) }}
-          style={{ padding: '12px 24px', borderRadius: '10px', border: '1px solid var(--border-medium)', background: 'var(--bg-card)', color: 'var(--text-secondary)', fontWeight: 600, cursor: 'pointer' }}>
+          style={{ padding: '12px 24px', borderRadius: '10px', border: '1px solid var(--border-medium)', background: 'var(--glass-2)', color: 'var(--text-secondary)', fontWeight: 600, cursor: 'pointer' }}>
           Post another →
         </button>
       </div>

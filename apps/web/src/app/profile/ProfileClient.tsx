@@ -68,7 +68,7 @@ export default function ProfileClient({ profile, candidate, userId }: Props) {
     letterSpacing: '0.1em', marginBottom: '12px',
   }
   const card: React.CSSProperties = {
-    background: 'var(--bg-card)', border: '1px solid var(--border)',
+    background: 'var(--glass-2)', border: '1px solid var(--border)',
     borderRadius: '14px', padding: '24px', marginBottom: '20px',
   }
 
@@ -123,7 +123,7 @@ export default function ProfileClient({ profile, candidate, userId }: Props) {
           placeholder="e.g. Senior Data Analyst | 5 years SA banking"
           style={{
             width: '100%', padding: '10px 14px', borderRadius: '8px',
-            border: '1px solid var(--border-medium)', background: 'var(--bg-base)',
+            border: '1px solid var(--border-medium)', background: 'var(--glass-1)',
             color: 'var(--text-primary)', fontSize: '14px', outline: 'none',
             marginBottom: '16px', boxSizing: 'border-box',
           }}
@@ -136,7 +136,7 @@ export default function ProfileClient({ profile, candidate, userId }: Props) {
           placeholder="Brief 2-3 sentence summary of your experience and goals"
           style={{
             width: '100%', padding: '10px 14px', borderRadius: '8px',
-            border: '1px solid var(--border-medium)', background: 'var(--bg-base)',
+            border: '1px solid var(--border-medium)', background: 'var(--glass-1)',
             color: 'var(--text-primary)', fontSize: '14px', outline: 'none',
             resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box',
           }}
@@ -174,7 +174,7 @@ export default function ProfileClient({ profile, candidate, userId }: Props) {
             placeholder="Add a skill (press Enter)"
             style={{
               flex: 1, padding: '9px 14px', borderRadius: '8px',
-              border: '1px solid var(--border-medium)', background: 'var(--bg-base)',
+              border: '1px solid var(--border-medium)', background: 'var(--glass-1)',
               color: 'var(--text-primary)', fontSize: '13px', outline: 'none',
             }}
           />
@@ -279,7 +279,7 @@ export default function ProfileClient({ profile, candidate, userId }: Props) {
                 style={{
                   padding: '9px 20px', borderRadius: '8px', fontSize: '13px', fontWeight: 600,
                   border: '1px solid var(--border-medium)', color: 'var(--text-secondary)',
-                  background: 'var(--bg-card)', cursor: 'pointer',
+                  background: 'var(--glass-2)', cursor: 'pointer',
                 }}
               >
                 Cancel

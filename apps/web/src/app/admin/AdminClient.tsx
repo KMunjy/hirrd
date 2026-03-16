@@ -87,7 +87,7 @@ export default function AdminClient({ leads, stats }: Props) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', marginBottom: '24px' }}>
         {statBoxes.map(s => (
           <div key={s.label} style={{
-            background: 'var(--bg-card)', border: '1px solid var(--border)',
+            background: 'var(--glass-2)', border: '1px solid var(--border)',
             borderRadius: '10px', padding: '16px', textAlign: 'center',
           }}>
             <div style={{ fontSize: '28px', fontWeight: 800, color: s.color }}>{s.value}</div>
@@ -120,7 +120,7 @@ export default function AdminClient({ leads, stats }: Props) {
       ) : (
         filtered.map(lead => (
           <div key={lead.id} style={{
-            background: 'var(--bg-card)', border: '1px solid var(--border)',
+            background: 'var(--glass-2)', border: '1px solid var(--border)',
             borderRadius: '12px', padding: '20px', marginBottom: '12px',
             borderLeft: lead.risk_flags?.length > 0 ? '3px solid var(--warning)' : '3px solid var(--border)',
           }}>
@@ -214,7 +214,7 @@ export default function AdminClient({ leads, stats }: Props) {
                       style={{
                         width: '100%', padding: '5px 8px', fontSize: '11px',
                         borderRadius: '5px', border: '1px solid var(--border-medium)',
-                        background: 'var(--bg-base)', color: 'var(--text-primary)', marginBottom: '4px',
+                        background: 'var(--glass-1)', color: 'var(--text-primary)', marginBottom: '4px',
                         outline: 'none', boxSizing: 'border-box',
                       }}
                     />

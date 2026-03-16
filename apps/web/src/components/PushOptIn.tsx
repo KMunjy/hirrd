@@ -58,7 +58,7 @@ export default function PushOptIn({ context = 'after-cv-upload' }: Props) {
 
   return (
     <div style={{
-      background: 'var(--bg-card)', border: '1px solid var(--border)',
+      background: 'var(--glass-2)', border: '1px solid var(--border)',
       borderRadius: '14px', padding: '16px 20px', marginTop: '16px',
       display: 'flex', gap: '14px', alignItems: 'flex-start',
       animation: 'slideUp 0.3s ease-out',

@@ -34,7 +34,7 @@ export function TestimonialBanner() {
 
   return (
     <div style={{
-      background: 'var(--bg-card)',
+      background: 'var(--glass-2)',
       borderTop: '1px solid var(--border)',
       borderBottom: '1px solid var(--border)',
       padding: '16px 24px',

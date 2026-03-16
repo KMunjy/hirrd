@@ -116,7 +116,7 @@ export default function HirrdLogo({
           <span style={{
             fontSize: `${s.text}px`,
             fontWeight: 800,
-            color: '#7C58E8',
+            color: 'var(--primary)',
             letterSpacing: '-0.03em',
             fontFamily: '"Inter", Arial, sans-serif',
           }}>rr</span>

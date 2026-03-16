@@ -78,7 +78,7 @@ export default function EmployersPage() {
   }
 
   if (submitted) return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(145deg,#EDE8FF,#F4F2FF,#E6F9FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--gradient-hero)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
       <div style={{ background: '#fff', borderRadius: '20px', padding: '48px', maxWidth: '480px', textAlign: 'center', border: '1px solid rgba(124,88,232,0.12)' }}>
         <div style={{ fontSize: '56px', marginBottom: '16px' }}>🎉</div>
         <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#1a1240', marginBottom: '8px' }}>Application received</h1>
@@ -93,7 +93,7 @@ export default function EmployersPage() {
           <Link href="/employer/dashboard" style={{ padding: '12px 24px', borderRadius: '10px', background: 'linear-gradient(135deg,#7C58E8,#38C6D4)', color: 'white', fontWeight: 600, textDecoration: 'none' }}>
             View application status →
           </Link>
-          <Link href="/" style={{ padding: '12px 20px', borderRadius: '10px', border: '1px solid rgba(124,88,232,0.3)', color: '#7C58E8', fontWeight: 600, textDecoration: 'none' }}>
+          <Link href="/" style={{ padding: '12px 20px', borderRadius: '10px', border: '1px solid rgba(124,88,232,0.3)', color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>
             ← Back to Hirrd
           </Link>
         </div>
@@ -153,7 +153,7 @@ export default function EmployersPage() {
                   </li>
                 ))}
               </ul>
-              <button onClick={() => setView('register')} style={{ width: '100%', padding: '12px', borderRadius: '10px', background: 'rgba(124,88,232,0.08)', color: '#7C58E8', border: '1px solid rgba(124,88,232,0.2)', fontWeight: 600, cursor: 'pointer', fontSize: '14px' }}>
+              <button onClick={() => setView('register')} style={{ width: '100%', padding: '12px', borderRadius: '10px', background: 'rgba(124,88,232,0.08)', color: 'var(--primary)', border: '1px solid rgba(124,88,232,0.2)', fontWeight: 600, cursor: 'pointer', fontSize: '14px' }}>
                 Start posting →
               </button>
             </div>
@@ -194,7 +194,7 @@ export default function EmployersPage() {
                 ))}
               </ul>
               <Link href="mailto:employers@hirrd.com?subject=Enterprise enquiry"
-                style={{ display: 'block', width: '100%', padding: '12px', borderRadius: '10px', background: 'rgba(124,88,232,0.08)', color: '#7C58E8', border: '1px solid rgba(124,88,232,0.2)', fontWeight: 600, cursor: 'pointer', fontSize: '14px', textDecoration: 'none', textAlign: 'center' }}>
+                style={{ display: 'block', width: '100%', padding: '12px', borderRadius: '10px', background: 'rgba(124,88,232,0.08)', color: 'var(--primary)', border: '1px solid rgba(124,88,232,0.2)', fontWeight: 600, cursor: 'pointer', fontSize: '14px', textDecoration: 'none', textAlign: 'center' }}>
                 Contact us →
               </Link>
             </div>
@@ -283,7 +283,7 @@ export default function EmployersPage() {
                       padding: '10px 8px', borderRadius: '8px', fontSize: '11px', fontWeight: 600, cursor: 'pointer',
                       border: form.selected_plan === p.val ? '2px solid #7C58E8' : '1px solid rgba(124,88,232,0.2)',
                       background: form.selected_plan === p.val ? 'rgba(124,88,232,0.08)' : '#FAFAF8',
-                      color: form.selected_plan === p.val ? '#7C58E8' : '#6B7280',
+                      color: form.selected_plan === p.val ? 'var(--primary)' : '#6B7280',
                     }}>
                       <div>{p.label}</div>
                       <div style={{ fontWeight: 400, fontSize: '10px', marginTop: '2px', opacity: 0.7 }}>{p.sub}</div>
@@ -295,7 +295,7 @@ export default function EmployersPage() {
               {/* POPIA notice */}
               <div style={{ background: 'rgba(124,88,232,0.04)', borderRadius: '10px', padding: '12px 14px', marginBottom: '16px', fontSize: '12px', color: '#6B7280', lineHeight: 1.5 }}>
                 🔒 Your data is protected under POPIA (Act 4 of 2013). We use it only to verify your company.{' '}
-                <Link href="/privacy" style={{ color: '#7C58E8' }}>Privacy Policy</Link>
+                <Link href="/privacy" style={{ color: 'var(--primary)' }}>Privacy Policy</Link>
               </div>
 
               {/* Anti-scam notice */}
@@ -304,21 +304,21 @@ export default function EmployersPage() {
               </div>
 
               <div style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}>
-                <input id="emp-tos" type="checkbox" required checked={tos} onChange={e => setTos(e.target.checked)} style={{ marginTop: '3px', accentColor: '#7C58E8', flexShrink: 0 }} />
+                <input id="emp-tos" type="checkbox" required checked={tos} onChange={e => setTos(e.target.checked)} style={{ marginTop: '3px', accentColor: 'var(--primary)', flexShrink: 0 }} />
                 <label htmlFor="emp-tos" style={{ fontSize: '12px', color: '#6B7280', lineHeight: 1.5 }}>
                   I confirm this company is legitimately registered in South Africa and I agree to Hirrd's{' '}
-                  <Link href="/terms" style={{ color: '#7C58E8' }}>Terms of Service</Link>. <span style={{ color: '#EF4444' }}>*</span>
+                  <Link href="/terms" style={{ color: 'var(--primary)' }}>Terms of Service</Link>. <span style={{ color: '#EF4444' }}>*</span>
                 </label>
               </div>
               <div style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
-                <input id="emp-marketing" type="checkbox" checked={marketing} onChange={e => setMarketing(e.target.checked)} style={{ marginTop: '3px', accentColor: '#7C58E8', flexShrink: 0 }} />
+                <input id="emp-marketing" type="checkbox" checked={marketing} onChange={e => setMarketing(e.target.checked)} style={{ marginTop: '3px', accentColor: 'var(--primary)', flexShrink: 0 }} />
                 <label htmlFor="emp-marketing" style={{ fontSize: '12px', color: '#6B7280', lineHeight: 1.5 }}>
                   I'd like to receive SA hiring insights and product updates. (Optional)
                 </label>
               </div>
 
               {error && (
-                <div role="alert" style={{ background: '#FFF5F5', border: '1px solid rgba(192,80,74,0.2)', borderRadius: '8px', padding: '10px 14px', marginBottom: '16px', fontSize: '13px', color: '#C0504A' }}>
+                <div role="alert" style={{ background: 'rgba(244,63,94,0.12)', border: '1px solid rgba(192,80,74,0.2)', borderRadius: '8px', padding: '10px 14px', marginBottom: '16px', fontSize: '13px', color: '#C0504A' }}>
                   {error}
                 </div>
               )}
