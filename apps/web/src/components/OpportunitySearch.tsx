@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 
 interface Opportunity {
   id: string; type: string; title: string; sector?: string; industry?: string;
@@ -117,7 +116,7 @@ export default function OpportunitySearch({ opportunities, type }: Props) {
             const sal = formatSal(o)
             const verified = o.is_verified || o.verification_status === 'verified'
             return (
-              <div key={o.id} className="card card-hover">
+              <a key={o.id} href={`/jobs/${o.id}`} style={{ textDecoration: 'none', display: 'block' }} className="card card-hover">
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '8px' }}>
                   <span style={{ fontSize: '9px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', background: meta.bg, color: meta.color, border: `1px solid ${meta.border}`, letterSpacing: '0.08em' }}>
                     {o.type.toUpperCase()}
@@ -127,18 +126,18 @@ export default function OpportunitySearch({ opportunities, type }: Props) {
                       {o.seta_name ? `✓ ${o.seta_name}` : '✓ Verified'}
                     </span>
                   )}
-                </a>
+                </div>
                 <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#F0ECFF', marginBottom: '3px', lineHeight: 1.3 }}>{o.title}</h3>
                 <div style={{ fontSize: '12px', color: 'rgba(240,236,255,0.45)', marginBottom: '8px' }}>
                   {o.employers?.company_name || (o.sector || o.industry || '')} · {o.location_city || 'South Africa'}
                   {sal && ` · ${sal}`}
-                </a>
+                </div>
                 {(o.skills_required || []).length > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
                     {(o.skills_required || []).slice(0, 5).map(s => (
                       <span key={s} style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '4px', background: 'rgba(255,255,255,0.05)', color: 'rgba(240,236,255,0.5)', border: '1px solid rgba(255,255,255,0.07)' }}>{s}</span>
                     ))}
-                  </a>
+                  </div>
                 )}
               </a>
             )
