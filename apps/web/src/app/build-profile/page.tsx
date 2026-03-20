@@ -52,6 +52,15 @@ export default function BuildProfilePage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Guard: redirect users who already have CV uploaded
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) { router.replace('/auth/login'); return }
+      supabase.from('candidates').select('id, cv_url').eq('profile_id', user.id).single()
+        .then(({ data }) => { if (data?.cv_url) router.replace('/dashboard') })
+    })
+  }, [])
+
   const [education, setEducation] = useState('')
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
