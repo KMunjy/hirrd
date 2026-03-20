@@ -11,9 +11,8 @@ export default async function HomePage() {
   // Fetch live public opportunities for ticker + feed (no auth required)
   const { data: opportunities } = await supabase
     .from('opportunities')
-    .select('id,type,title,location_city,salary_min,salary_max,salary_currency,is_verified,verification_status,seta_name,employers(company_name)')
+    .select('id,type,title,slug,is_verified,employment_type,salary_min,salary_max,expires_at,employers(company_name,company_logo_url)')
     .eq('is_active', true)
-    .eq('market', 'za')
     .order('published_at', { ascending: false })
     .limit(60)
 
