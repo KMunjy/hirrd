@@ -359,3 +359,235 @@ select option { background: var(--surface); color: var(--text-primary); }
   background: linear-gradient(to right, transparent, var(--glass-border-bright), transparent);
   margin: 0;
 }
+
+/* ─── PREMIUM ADDITIONS ──────────────────────────────────────────────────────
+   Added: enhanced typography, richer animations, premium component polish
+─────────────────────────────────────────────────────────────────────────── */
+
+/* Better font import — add Geist Mono for scores/numbers */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap');
+
+/* ── Match score bars ──────────────────────────────────────────────────── */
+.match-bar {
+  height: 3px;
+  background: var(--glass-2);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.match-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+.match-bar-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: inherit;
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* ── Score display ─────────────────────────────────────────────────────── */
+.score-display {
+  font-family: 'DM Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ── Stat cards ─────────────────────────────────────────────────────────── */
+.stat-card {
+  background: var(--glass-1);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(123,92,240,0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+.stat-card:hover {
+  border-color: rgba(123,92,240,0.2);
+  background: var(--glass-2);
+}
+.stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  font-family: 'DM Mono', monospace;
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ── Pipeline steps ─────────────────────────────────────────────────────── */
+.pipeline-step {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+.pipeline-step-done {
+  background: var(--violet);
+  color: white;
+  box-shadow: 0 0 12px rgba(123,92,240,0.5);
+}
+.pipeline-step-pending {
+  background: var(--glass-2);
+  color: var(--text-muted);
+  border: 1px solid var(--glass-border);
+}
+.pipeline-connector {
+  flex: 1;
+  height: 2px;
+  margin: 0 4px;
+  margin-bottom: 16px;
+  border-radius: 1px;
+  transition: background 0.4s ease;
+}
+
+/* ── Nav pill links ─────────────────────────────────────────────────────── */
+.nav-pill {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  transition: all 0.18s ease;
+}
+.nav-pill:hover {
+  color: var(--text-primary);
+  background: var(--glass-2);
+  border-color: var(--glass-border);
+}
+
+/* ── Verified badge ─────────────────────────────────────────────────────── */
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(16,185,129,0.12);
+  color: #34D399;
+  border: 1px solid rgba(16,185,129,0.2);
+  letter-spacing: 0.04em;
+}
+
+/* ── Section headers ─────────────────────────────────────────────────────── */
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-subtle);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+/* ── Shimmer loading ─────────────────────────────────────────────────────── */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--glass-1) 25%,
+    var(--glass-2) 50%,
+    var(--glass-1) 75%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+/* ── Pulse ring (for live indicators) ───────────────────────────────────── */
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2); opacity: 0; }
+}
+.pulse-ring {
+  position: relative;
+  display: inline-block;
+}
+.pulse-ring::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: var(--emerald);
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+/* ── Slide up animation ──────────────────────────────────────────────────── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+/* ── Scale in ────────────────────────────────────────────────────────────── */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.scale-in { animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+/* ── Divider gradient ────────────────────────────────────────────────────── */
+.divider-gradient {
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--glass-border-bright) 30%, var(--glass-border-bright) 70%, transparent);
+  margin: 24px 0;
+}
+
+/* ── Mobile responsive adjustments ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  .card { border-radius: 14px; padding: 1rem; }
+  .btn  { padding: 10px 20px; font-size: 13px; }
+  .stat-value { font-size: 22px; }
+}
+
+/* ── High contrast for accessibility ────────────────────────────────────── */
+@media (prefers-contrast: high) {
+  :root {
+    --glass-border: rgba(255,255,255,0.25);
+    --text-muted: #A09ABE;
+    --text-subtle: #6B659A;
+  }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  .ticker-track { animation: none; }
+}

@@ -7,18 +7,18 @@ import { useState, useEffect } from 'react'
 const TESTIMONIALS = [
   {
     initials: 'TM', name: 'Thabo Mokoena', company: 'FNB · Data Analyst', city: 'Johannesburg',
-    accentColor: 'var(--primary)', bgColor: 'rgba(124,88,232,0.08)',
-    quote: '"Hirrd changed my life with an improved CV and finding me opportunities even while I was at home with no data — once I uploaded my CV, Hirrd didn\'t stop until I found my right opportunity. Thank you Hirrd."',
+    accentColor: 'var(--primary)', bgColor: 'rgba(123,92,240,0.12)',
+    quote: '"Hirrd changed my life. Once I uploaded my CV, the AI matched me to roles I never would have found. Got the call within a week."',
   },
   {
     initials: 'SN', name: 'Sive Nkosi', company: 'Standard Bank · UX Researcher', city: 'Cape Town',
-    accentColor: 'var(--secondary)', bgColor: 'rgba(56,198,212,0.08)',
-    quote: '"I had no idea my CV was holding me back. Hirrd improved it and matched me to roles I didn\'t even know existed. I got the call within a week. Truly life-changing."',
+    accentColor: 'var(--secondary)', bgColor: 'rgba(45,212,191,0.12)',
+    quote: '"I had no idea my CV was holding me back. Hirrd improved it and matched me to roles I didn\'t even know existed. Truly life-changing."',
   },
   {
     initials: 'PM', name: 'Priya Moodley', company: 'Discovery · Data Science Intern', city: 'Johannesburg',
-    accentColor: 'var(--warning)', bgColor: 'rgba(196,150,42,0.08)',
-    quote: '"As a graduate with no connections I thought it would take months. Hirrd matched me to this learnship in 48 hours. The AI knew exactly what I needed. Thank you."',
+    accentColor: 'var(--amber)', bgColor: 'rgba(245,158,11,0.12)',
+    quote: '"As a graduate with no connections I thought it would take months. Hirrd matched me to a learnership in 48 hours."',
   },
 ]
 
@@ -26,7 +26,7 @@ export function TestimonialBanner() {
   const [current, setCurrent] = useState(0)
 
   useEffect(() => {
-    const interval = setInterval(() => setCurrent(c => (c + 1) % TESTIMONIALS.length), 5000)
+    const interval = setInterval(() => setCurrent(c => (c + 1) % TESTIMONIALS.length), 5500)
     return () => clearInterval(interval)
   }, [])
 
@@ -34,49 +34,42 @@ export function TestimonialBanner() {
 
   return (
     <div style={{
-      background: 'var(--glass-2)',
-      borderTop: '1px solid var(--border)',
-      borderBottom: '1px solid var(--border)',
-      padding: '16px 24px',
+      background: 'linear-gradient(135deg, rgba(123,92,240,0.06) 0%, rgba(45,212,191,0.04) 100%)',
+      borderTop: '1px solid var(--glass-border)',
+      borderBottom: '1px solid var(--glass-border)',
+      padding: '20px 32px',
+      position: 'relative',
+      overflow: 'hidden',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      {/* Ambient glow */}
+      <div style={{ position: 'absolute', top: '-40px', left: '50%', transform: 'translateX(-50%)', width: '400px', height: '80px', background: 'radial-gradient(ellipse, rgba(123,92,240,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', maxWidth: '860px', margin: '0 auto', position: 'relative' }}>
+        {/* Avatar */}
         <div style={{
-          width: '48px', height: '48px', borderRadius: '50%',
-          background: t.bgColor, border: `2.5px solid ${t.accentColor}`,
+          width: '52px', height: '52px', borderRadius: '50%',
+          background: t.bgColor,
+          border: `2px solid ${t.accentColor}40`,
+          boxShadow: `0 0 20px ${t.accentColor}20`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '15px', fontWeight: 700, color: t.accentColor, flexShrink: 0,
-          transition: 'all 0.4s ease',
-        }}>
-          {t.initials}
-        </div>
+          fontSize: '15px', fontWeight: 800, color: t.accentColor, flexShrink: 0,
+          transition: 'all 0.5s ease',
+        }}>{t.initials}</div>
+
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{t.name}</span>
-            <span style={{
-              fontSize: '11px', padding: '2px 10px', borderRadius: '9999px',
-              background: 'var(--success-light)', color: 'var(--success)',
-              border: '1px solid rgba(58,174,114,0.2)', fontWeight: 600,
-            }}>{t.company}</span>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{t.city}</span>
+            <span style={{ fontSize: '11px', padding: '2px 10px', borderRadius: '9999px', background: 'var(--success-light)', color: 'var(--success)', border: '1px solid rgba(16,185,129,0.2)', fontWeight: 600 }}>{t.company}</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>📍 {t.city}</span>
           </div>
-          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.7 }}>
-            {t.quote}
-          </div>
+          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.7 }}>{t.quote}</div>
         </div>
+
+        {/* Dots */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', flexShrink: 0 }}>
           {TESTIMONIALS.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrent(i)}
-              aria-label={`Show testimonial ${i + 1} of ${TESTIMONIALS.length}`}
-              aria-pressed={i === current}
-              style={{
-                width: '8px', height: '8px', borderRadius: '50%', border: 'none',
-                cursor: 'pointer', padding: 0,
-                background: i === current ? 'var(--primary)' : 'rgba(124,88,232,0.2)',
-                transition: 'background 0.3s',
-              }}
-            />
+            <button key={i} onClick={() => setCurrent(i)} aria-label={`Testimonial ${i + 1}`}
+              style={{ width: '7px', height: i === current ? '20px' : '7px', borderRadius: '4px', border: 'none', cursor: 'pointer', padding: 0, background: i === current ? t.accentColor : 'rgba(255,255,255,0.15)', transition: 'all 0.3s ease' }} />
           ))}
         </div>
       </div>
@@ -84,100 +77,86 @@ export function TestimonialBanner() {
   )
 }
 
-
 // ─── HERO SECTION ─────────────────────────────────────────────────────────────
 
-export function HeroSection() {
+interface HeroStats {
+  jobs: number
+  learnerships: number
+  internships: number
+  bursaries: number
+}
+
+export function HeroSection({ stats }: { stats?: HeroStats }) {
+  const total = (stats?.jobs || 0) + (stats?.learnerships || 0) + (stats?.internships || 0) + (stats?.bursaries || 0)
+
   return (
     <section style={{
-      padding: '48px 24px 32px',
+      padding: 'clamp(48px, 8vw, 96px) 24px clamp(40px, 6vw, 72px)',
       textAlign: 'center',
       background: 'var(--gradient-hero)',
-      borderBottom: '1px solid var(--border)',
       position: 'relative',
       overflow: 'hidden',
     }}>
-      <div style={{
-        position: 'absolute', top: '-80px', right: '-80px',
-        width: '300px', height: '300px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(124,88,232,0.12) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
-      <div style={{
-        position: 'absolute', bottom: '-60px', left: '-60px',
-        width: '250px', height: '250px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(56,198,212,0.1) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
+      {/* Orbital rings */}
+      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '700px', height: '700px', border: '1px solid rgba(123,92,240,0.06)', borderRadius: '50%', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '500px', height: '500px', border: '1px solid rgba(45,212,191,0.07)', borderRadius: '50%', pointerEvents: 'none' }} />
 
-      <div style={{
-        display: 'inline-flex', alignItems: 'center', gap: '8px',
-        background: 'rgba(124,88,232,0.08)', border: '1px solid var(--border-medium)',
-        borderRadius: '9999px', padding: '6px 16px', marginBottom: '20px',
-        fontSize: '12px', color: 'var(--primary)', fontWeight: 600,
-      }}>
-        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success)' }} />
-        AI-powered · South Africa · Early Access
-      </div>
+      {/* Gradient orbs */}
+      <div style={{ position: 'absolute', top: '-100px', right: '-80px', width: '380px', height: '380px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(123,92,240,0.15) 0%, transparent 65%)', pointerEvents: 'none', filter: 'blur(20px)' }} />
+      <div style={{ position: 'absolute', bottom: '-80px', left: '-80px', width: '320px', height: '320px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 65%)', pointerEvents: 'none', filter: 'blur(20px)' }} />
 
-      <h1 style={{
-        fontSize: 'clamp(32px, 5vw, 56px)',
-        fontWeight: 800,
-        color: 'var(--text-primary)',
-        lineHeight: 1.15,
-        marginBottom: '16px',
-        letterSpacing: '-0.03em',
-        maxWidth: '700px',
-        margin: '0 auto 16px',
-      }}>
-        The platform built to{' '}
-        <span style={{
-          background: 'var(--gradient-primary)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-        }}>
-          change careers
-        </span>
-      </h1>
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        {/* Live badge */}
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(123,92,240,0.1)', border: '1px solid rgba(123,92,240,0.25)', borderRadius: '9999px', padding: '7px 18px', marginBottom: '28px', fontSize: '12px', color: 'var(--violet-glow)', fontWeight: 700, letterSpacing: '0.04em' }}>
+          <span className="glow-dot" style={{ width: '7px', height: '7px' }} />
+          {total > 0 ? `${total.toLocaleString()} live opportunities` : 'AI-powered · South Africa · Early Access'}
+        </div>
 
-      <p style={{
-        fontSize: '17px',
-        color: 'var(--text-muted)',
-        maxWidth: '540px',
-        margin: '0 auto 32px',
-        lineHeight: 1.7,
-      }}>
-        Upload your CV once. Hirrd matches you with jobs, learnerships, and courses across South Africa — even when you're offline.
-      </p>
+        {/* Headline */}
+        <h1 style={{ fontSize: 'clamp(36px, 6vw, 68px)', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.1, marginBottom: '20px', letterSpacing: '-0.03em', maxWidth: '780px', margin: '0 auto 20px' }}>
+          The platform built to{' '}
+          <span style={{ background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+            change careers
+          </span>
+        </h1>
 
-      <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-        <button className="btn btn-primary" style={{ fontSize: '15px', padding: '13px 28px' }}>
-          Upload CV — get matched →
-        </button>
-        <button className="btn btn-outline" style={{ fontSize: '15px', padding: '13px 24px' }}>
-          Post a job
-        </button>
-      </div>
+        {/* Sub */}
+        <p style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: 'var(--text-muted)', maxWidth: '520px', margin: '0 auto 36px', lineHeight: 1.75 }}>
+          Upload your CV once. Hirrd matches you with SA jobs, learnerships, bursaries and internships — powered by AI.
+        </p>
 
-      <div style={{
-        marginTop: '32px',
-        display: 'flex',
-        justifyContent: 'center',
-        gap: '32px',
-        flexWrap: 'wrap',
-      }}>
-        {[
-          { value: 'Early', label: 'Access Open' },
-          { value: 'SA', label: 'Focus' },
-          { value: 'AI', label: 'Powered' },
-          { value: 'Free', label: 'To Join' },
-        ].map(s => (
-          <div key={s.label} style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--primary)' }}>{s.value}</div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500 }}>{s.label}</div>
-          </div>
-        ))}
+        {/* CTAs */}
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <a href="/auth/register" className="btn btn-primary" style={{ fontSize: '15px', padding: '14px 32px', gap: '8px' }}>
+            Upload CV — get matched →
+          </a>
+          <a href="/employers" className="btn btn-ghost" style={{ fontSize: '15px', padding: '14px 28px' }}>
+            Post a job
+          </a>
+        </div>
+
+        {/* Stats row */}
+        <div style={{ marginTop: '48px', display: 'flex', justifyContent: 'center', gap: 'clamp(24px, 5vw, 56px)', flexWrap: 'wrap' }}>
+          {[
+            { value: stats?.jobs ? `${stats.jobs.toLocaleString()}+` : 'Live', label: 'Jobs' },
+            { value: stats?.learnerships ? `${stats.learnerships.toLocaleString()}+` : 'SETA', label: 'Learnerships' },
+            { value: stats?.bursaries ? `${stats.bursaries.toLocaleString()}+` : 'Funded', label: 'Bursaries' },
+            { value: 'Free', label: 'To Join' },
+          ].map(s => (
+            <div key={s.label} style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: 800, background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', lineHeight: 1 }}>{s.value}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500, marginTop: '4px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Trusted by strip */}
+        <div style={{ marginTop: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '11px', color: 'var(--text-subtle)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Trusted by</span>
+          {['FNB', 'Standard Bank', 'Vodacom', 'Discovery', 'MTN'].map(name => (
+            <span key={name} style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', padding: '4px 12px', background: 'var(--glass-1)', border: '1px solid var(--glass-border)', borderRadius: '8px' }}>{name}</span>
+          ))}
+        </div>
       </div>
     </section>
   )
@@ -187,24 +166,28 @@ export function HeroSection() {
 
 export function FooterBar() {
   return (
-    <footer style={{
-      background: 'var(--gradient-primary)',
-      padding: '8px 24px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    }}>
-      <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>
-        Hirrd · Career Intelligence · hirrd.com
-      </span>
-      <div style={{ display: 'flex', gap: '16px' }}>
-        {['JHB LIVE', 'CPT LIVE', 'LDN LIVE'].map(m => (
-          <span key={m} style={{ fontSize: '10px', color: '#fff', fontWeight: 600 }}>● {m}</span>
-        ))}
+    <footer style={{ background: 'var(--deep)', borderTop: '1px solid var(--glass-border)', padding: '24px 32px' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '16px', fontWeight: 800, background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Hirrd</span>
+          <span style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>Career Intelligence · ZA · ZW · UK</span>
+        </div>
+        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+          {['Privacy', 'Terms', 'Support'].map(l => (
+            <a key={l} href={`/${l.toLowerCase()}`} style={{ fontSize: '12px', color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 500 }}>{l}</a>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          {['JHB', 'CPT', 'LDN'].map(m => (
+            <span key={m} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--emerald)', boxShadow: '0 0 6px rgba(16,185,129,0.8)', display: 'inline-block' }} />
+              {m}
+            </span>
+          ))}
+        </div>
       </div>
     </footer>
   )
 }
-
 
 export default HeroSection
