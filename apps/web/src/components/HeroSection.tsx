@@ -173,8 +173,8 @@ export function FooterBar() {
           <span style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>Career Intelligence · ZA · ZW · UK</span>
         </div>
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-          {['Privacy', 'Terms', 'Support'].map(l => (
-            <a key={l} href={`/${l.toLowerCase()}`} style={{ fontSize: '12px', color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 500 }}>{l}</a>
+          {['Privacy', 'Terms', 'Support', 'Data Rights', 'Disputes'].map(l => (
+            <a key={l} href={l === 'Data Rights' ? '/data-request' : l === 'Disputes' ? '/disputes' : `/${l.toLowerCase()}`} style={{ fontSize: '12px', color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 500 }}>{l}</a>
           ))}
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
