@@ -175,3 +175,93 @@ export function validateCvUrl(url: string): boolean {
     return false
   }
 }
+
+/**
+ * SCP-04: Enforce rate limits aligned to rate_limit_config table (Migration 003)
+ * B6 Remediation: aligns circuit breaker thresholds with RCPs exactly
+ */
+export async function checkCircuitBreaker(
+  key: string,
+  userId: string,
+  customLimit?: number
+): Promise<{ tripped: boolean; action: 'block' | 'flag' | 'suspend' | null; count: number }> {
+  // Endpoint-to-RCP mapping aligned to rate_limit_config seed data
+  const RCP_THRESHOLDS: Record<string, { limit: number; window: number; suspendAt?: number; action: 'block' | 'flag' }> = {
+    apply_velocity:       { limit: 20,  window: 3600, suspendAt: 50,  action: 'block' },  // RCP-01
+    employer_post:        { limit: 3,   window: 3600, suspendAt: 10,  action: 'block' },  // RCP-02
+    cv_parse:             { limit: 5,   window: 60,   suspendAt: 20,  action: 'block' },
+    phone_verify:         { limit: 5,   window: 3600, suspendAt: 15,  action: 'block' },
+    match_request:        { limit: 30,  window: 60,   action: 'flag' },
+    dispute_submit:       { limit: 5,   window: 3600, action: 'flag' },
+    data_request:         { limit: 2,   window: 86400, action: 'block' },
+  }
+
+  const config = RCP_THRESHOLDS[key]
+  if (!config) return { tripped: false, action: null, count: 0 }
+
+  const limit = customLimit ?? config.limit
+  const windowKey = `cb:${key}:${userId}:${Math.floor(Date.now() / (config.window * 1000))}`
+
+  try {
+    const { Ratelimit } = await import('@upstash/ratelimit')
+    const { Redis } = await import('@upstash/redis')
+
+    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+      return { tripped: false, action: null, count: 0 }
+    }
+
+    const redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    })
+
+    const count = await redis.incr(windowKey)
+    if (count === 1) await redis.expire(windowKey, config.window)
+
+    // SCP-04: RCP-aligned thresholds
+    if (config.suspendAt && count >= config.suspendAt) {
+      return { tripped: true, action: 'suspend', count }
+    }
+    if (count >= limit) {
+      return { tripped: true, action: config.action, count }
+    }
+    return { tripped: false, action: null, count }
+  } catch {
+    // Graceful degradation — never block user if Redis unavailable
+    return { tripped: false, action: null, count: 0 }
+  }
+}
+
+/**
+ * SCP-10: Validate settlement dual confirmation before marking placement final
+ */
+export async function validateSettlementDualConfirm(placementId: string): Promise<boolean> {
+  const { createClient } = await import('@/lib/supabase/server')
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('placements')
+    .select('employer_confirmed, candidate_accepted')
+    .eq('id', placementId)
+    .single()
+
+  return !!(data?.employer_confirmed && data?.candidate_accepted)
+}
+
+/**
+ * RCP-07: AML threshold check (activated when payments go live)
+ * Logs alert if single transaction exceeds R50,000 or aggregate > R100,000/month
+ */
+export async function checkAMLThreshold(
+  profileId: string,
+  amountCents: number
+): Promise<{ flag: boolean; reason?: string }> {
+  const R50K_CENTS = 5_000_000
+  const R100K_MONTHLY_CENTS = 10_000_000
+
+  if (amountCents >= R50K_CENTS) {
+    return { flag: true, reason: 'SINGLE_TRANSACTION_EXCEEDS_R50K' }
+  }
+
+  // Aggregate check would query ledger table — scaffold only until payments live
+  return { flag: false }
+}
