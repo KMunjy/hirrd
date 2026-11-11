@@ -123,7 +123,7 @@ export default async function EmployerDashboardPage() {
           {statusKey === 'converted' ? (
             <div>
               <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: 1.6 }}>
-                Your account is fully verified. Job posting is coming soon — you'll receive an email when it launches.
+                Your account is fully verified. Job posting is coming soon — you&apos;ll receive an email when it launches.
               </p>
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <Link href="/" style={{

@@ -1,7 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import HirrdLogo from '@/components/HirrdLogo'
@@ -46,7 +46,7 @@ type Step = 'education' | 'subjects' | 'skills' | 'sector' | 'location' | 'done'
 
 export default function BuildProfilePage() {
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   const [step, setStep] = useState<Step>('education')
   const [loading, setLoading] = useState(false)
@@ -59,7 +59,7 @@ export default function BuildProfilePage() {
       supabase.from('candidates').select('id, cv_url').eq('profile_id', user.id).single()
         .then(({ data }) => { if (data?.cv_url) router.replace('/dashboard') })
     })
-  }, [])
+  }, [router, supabase])
 
   const [education, setEducation] = useState('')
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
@@ -253,7 +253,7 @@ export default function BuildProfilePage() {
               <h1 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '6px' }}>
                 What interests you?
               </h1>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '20px' }}>Pick up to 3 sectors — we'll find learnerships that match</p>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '20px' }}>Pick up to 3 sectors — we&apos;ll find learnerships that match</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '24px' }}>
                 {SECTORS.map(s => (
                   <button

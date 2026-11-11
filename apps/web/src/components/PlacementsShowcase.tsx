@@ -102,7 +102,7 @@ function PlacementCard({ placement: p }: { placement: typeof PLACEMENTS[0] }) {
         borderTop: '1px solid var(--border)',
         paddingTop: '10px',
       }}>
-        "{p.quote}"
+        &quot;{p.quote}&quot;
       </div>
       <div style={{ marginTop: '8px', fontSize: '10px', color: 'var(--text-subtle)', fontWeight: 500 }}>
         {p.daysAgo}

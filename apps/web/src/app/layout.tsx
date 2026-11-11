@@ -1,6 +1,13 @@
 import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
 import './globals.css'
 import ServiceWorkerRegistrar from '@/components/ServiceWorkerRegistrar'
+
+const inter = Inter({
+  weight: ['400', '500', '600', '700', '800'],
+  subsets: ['latin'],
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'Hirrd — Career Intelligence',
@@ -25,7 +32,6 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
         {/* PWA */}
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
@@ -39,7 +45,7 @@ export default function RootLayout({
         {/* Security headers via meta (belt-and-suspenders — middleware handles server-side) */}
         <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
       </head>
-      <body className="min-h-screen" style={{ fontFamily: "'Inter', Arial, sans-serif" }}>
+      <body className="min-h-screen" style={{ fontFamily: inter.style.fontFamily }}>
         <a href="#main-content" className="skip-link">
           Skip to main content
         </a>

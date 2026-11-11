@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import HirrdNav from '@/components/HirrdNav'
 import Link from 'next/link'
+import Image from 'next/image'
 
 type Rec = 'apply_now' | 'apply_with_note' | 'skill_up_first' | 'not_recommended'
 
@@ -35,7 +36,7 @@ const TYPE_META: Record<string, { label: string; color: string }> = {
 export default function JobDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
@@ -81,7 +82,7 @@ export default function JobDetailPage() {
       }
     }
     load()
-  }, [id])
+  }, [id, supabase])
 
   async function getMatch() {
     if (!user || !candidate) return
@@ -315,7 +316,7 @@ export default function JobDetailPage() {
             <div style={s.sectionLabel}>EMPLOYER</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               {opp.employers.company_logo_url && (
-                <img src={opp.employers.company_logo_url} alt="" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} />
+                <Image src={opp.employers.company_logo_url} alt="" width={40} height={40} style={{ borderRadius: '8px', objectFit: 'cover' }} />
               )}
               <div>
                 <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{opp.employers.company_name}</div>
