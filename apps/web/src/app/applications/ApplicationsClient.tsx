@@ -55,7 +55,12 @@ export default function ApplicationsClient({ applications, hasCandidate }: Props
     offers: applications.filter(a => ['offered', 'placed'].includes(a.status)).length,
   }
 
-  const s: Record<string, React.CSSProperties> = {
+  const s: {
+    page: React.CSSProperties
+    card: React.CSSProperties
+    stat: React.CSSProperties
+    filterBtn: (active: boolean) => React.CSSProperties
+  } = {
     page: { maxWidth: '860px', margin: '0 auto', padding: '32px 20px 80px' },
     card: { background: 'var(--glass-2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '20px', marginBottom: '12px', transition: 'border-color 0.15s' },
     stat: { background: 'var(--glass-2)', border: '1px solid var(--border)', borderRadius: '12px', padding: '16px 20px', textAlign: 'center' as const },

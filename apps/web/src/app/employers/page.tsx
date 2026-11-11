@@ -218,7 +218,7 @@ export default function EmployersPage() {
 
           <div style={{ textAlign: 'center' }}>
             <button onClick={() => setView('register')} style={{ padding: '14px 40px', borderRadius: '12px', background: 'linear-gradient(135deg,#7C58E8,#38C6D4)', color: 'white', border: 'none', fontWeight: 700, fontSize: '16px', cursor: 'pointer' }}>
-              Register your company — it's free →
+              Register your company — it&apos;s free →
             </button>
             <p style={{ fontSize: '12px', color: '#6B7280', marginTop: '12px' }}>No credit card required. First 3 listings free forever.</p>
           </div>
@@ -306,14 +306,14 @@ export default function EmployersPage() {
               <div style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}>
                 <input id="emp-tos" type="checkbox" required checked={tos} onChange={e => setTos(e.target.checked)} style={{ marginTop: '3px', accentColor: 'var(--primary)', flexShrink: 0 }} />
                 <label htmlFor="emp-tos" style={{ fontSize: '12px', color: '#6B7280', lineHeight: 1.5 }}>
-                  I confirm this company is legitimately registered in South Africa and I agree to Hirrd's{' '}
+                  I confirm this company is legitimately registered in South Africa and I agree to Hirrd&apos;s{' '}
                   <Link href="/terms" style={{ color: 'var(--primary)' }}>Terms of Service</Link>. <span style={{ color: '#EF4444' }}>*</span>
                 </label>
               </div>
               <div style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
                 <input id="emp-marketing" type="checkbox" checked={marketing} onChange={e => setMarketing(e.target.checked)} style={{ marginTop: '3px', accentColor: 'var(--primary)', flexShrink: 0 }} />
                 <label htmlFor="emp-marketing" style={{ fontSize: '12px', color: '#6B7280', lineHeight: 1.5 }}>
-                  I'd like to receive SA hiring insights and product updates. (Optional)
+                  I&apos;d like to receive SA hiring insights and product updates. (Optional)
                 </label>
               </div>
 

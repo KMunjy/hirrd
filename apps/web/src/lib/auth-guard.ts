@@ -178,9 +178,15 @@ export function validateCvUrl(url: string): boolean {
 
 /**
  * SCP-04: Enforce rate limits aligned to rate_limit_config table (Migration 003)
- * B6 Remediation: aligns circuit breaker thresholds with RCPs exactly
+ * B6 Remediation: aligns circuit breaker thresholds with RCPs exactly.
+ *
+ * This was declared again as checkCircuitBreaker, which is a syntax error
+ * (duplicate export) so neither body could load. It keeps a distinct name.
+ * Callers still use checkCircuitBreaker above. This map has no `cv_parse_rate`
+ * key, and `apply_velocity` here counts Upstash keys instead of the
+ * circuit_breakers table, so pointing callers here would change behaviour.
  */
-export async function checkCircuitBreaker(
+export async function checkRcpCircuitBreaker(
   key: string,
   userId: string,
   customLimit?: number
