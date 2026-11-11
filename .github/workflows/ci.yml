@@ -28,4 +28,4 @@ jobs:
         run: npm run lint --workspace=apps/web
 
       - name: Unit tests
-        run: npx vitest run --workspace=apps/web
+        run: npm test --workspace=apps/web
