@@ -1,0 +1,21 @@
+# Failing typecheck record
+#
+# Captured from origin/main before any type fix.
+# Git SHA: 70cde9e2638f0d111a8966bfd2c6bf0f997e8b1c
+# Command: npx tsc --noEmit --project apps/web/tsconfig.json
+# Node: v20.20.2
+# npm: 10.8.2
+# TypeScript: Version 5.9.3
+# Exit code: 1
+# Error count: 7
+#
+# Same command as .github/workflows/ci.yml step "TypeScript type check".
+# Compiler diagnostics (stdout+stderr, unmodified):
+apps/web/src/app/applications/ApplicationsClient.tsx(62,16): error TS2560: Value of type '(active: boolean) => CSSProperties' has no properties in common with type 'Properties<string | number, string & {}>'. Did you mean to call it?
+apps/web/src/app/applications/ApplicationsClient.tsx(116,65): error TS2349: This expression is not callable.
+  Type 'CSSProperties' has no call signatures.
+apps/web/src/app/build-profile/page.tsx(56,3): error TS2304: Cannot find name 'useEffect'.
+apps/web/src/lib/auth-guard.ts(118,23): error TS2323: Cannot redeclare exported variable 'checkCircuitBreaker'.
+apps/web/src/lib/auth-guard.ts(118,23): error TS2393: Duplicate function implementation.
+apps/web/src/lib/auth-guard.ts(183,23): error TS2323: Cannot redeclare exported variable 'checkCircuitBreaker'.
+apps/web/src/lib/auth-guard.ts(183,23): error TS2393: Duplicate function implementation.
